@@ -17,7 +17,7 @@ exports.getOne = function(){
 exports.insert = function(username, done){
     let values = [username];
 
-    db.get().query('INSERT INTO User (username) VALUES ?', values, function (err, result) {
+    db.get().query('INSERT INTO Users (username) VALUES ?', values, function (err, result) {
         if (err) return done(err)
 
         done(result);

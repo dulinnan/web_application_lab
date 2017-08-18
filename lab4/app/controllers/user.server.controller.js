@@ -13,6 +13,7 @@ exports.create = function(req, res){
     let user_data = {
         "username": req.body.username
     };
+    console.log(user_data);
     let user = user_data['username'].toString();
 
     let values = [
