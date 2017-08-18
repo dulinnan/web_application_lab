@@ -53,8 +53,6 @@ CREATE TABLE `project` (
   PRIMARY KEY (`project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='object containing project, and generated data (creation date, id)';
 
-
-
 CREATE TABLE `project_data` (
   `project_id` int(11) NOT NULL,
   `title` varchar(45) NOT NULL,
@@ -67,17 +65,17 @@ CREATE TABLE `project_data` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='detailed info of project';
 
 
-CREATE TABLE `public_user` (
-  `id` int(11) NOT NULL,
-  `username` varchar(45) DEFAULT NULL,
-  `location` varchar(45) DEFAULT NULL,
-  `email` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `user_id_ref_public` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='basic info about user';
+--CREATE TABLE `public_user` (
+--  `id` int(11) NOT NULL,
+--  `username` varchar(45) DEFAULT NULL,
+--  `location` varchar(45) DEFAULT NULL,
+--  `email` varchar(45) DEFAULT NULL,
+--  PRIMARY KEY (`id`),
+--  CONSTRAINT `user_id_ref_public` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='basic info about user';
 
 CREATE TABLE `reward` (
-  `reward_id` int(11) NOT NULL,
+  `reward_id` int(11) NOT NULL AUTO_INCREMENT,
   `amount` varchar(45) DEFAULT NULL,
   `description` varchar(45) DEFAULT NULL,
   `project_id` int(11) NOT NULL,
@@ -87,8 +85,8 @@ CREATE TABLE `reward` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='a project reward';
 
 
-CREATE TABLE `user` (
-  `id` int(11) NOT NULL,
-  `password` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='user info and password';
+--CREATE TABLE `user` (
+--  `id` int(11) NOT NULL,
+--  `password` varchar(45) DEFAULT NULL,
+--  PRIMARY KEY (`id`)
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='user info and password';

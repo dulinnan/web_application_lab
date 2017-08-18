@@ -2,7 +2,6 @@
 SELECT `reward`.`reward_id`,
     `reward`.`amount`,
     `reward`.`description`
-
 FROM `seng_365`.`reward`
 WHERE  `reward`.`project_id` = 
 
