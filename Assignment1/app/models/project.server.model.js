@@ -114,7 +114,7 @@ exports.postProjectData = function (project_id, title, subtitle, description, im
     });
 };
 
-exports.postReward = function (amount, description,project_id, done){
+exports.postReward = function (amount, description, project_id, done){
     const insertReward = 'INSERT INTO `seng_365`.`reward` (`amount`, `description`, `project_id`) VALUES (?,?,?)';
     let values = [amount, description,project_id];
     db.get().query(insertReward, values, function (err, result) {
@@ -123,3 +123,11 @@ exports.postReward = function (amount, description,project_id, done){
     });
 };
 
+exports.postCreator = function (project_id, creator_id, done) {
+    const insertReward = 'INSERT INTO `seng_365`.`creator` VALUES (?,?)';
+    let values = [project_id, creator_id];
+    db.get().query(insertReward, values, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};

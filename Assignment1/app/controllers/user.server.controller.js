@@ -40,3 +40,11 @@ exports.delete = function(req, res){
 exports.userById = function(req, res){
     return null;
 };
+
+exports.login = function(req, res){
+    return null;
+};
+
+exports.logout = function(req, res){
+    return null;
+};
