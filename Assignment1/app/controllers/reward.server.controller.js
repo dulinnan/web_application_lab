@@ -3,12 +3,14 @@
  */
 const Reward = require('../models/reward.server.model');
 exports.list = function(req, res){
-    Reward.getAll(function (result) {
+    let id = req.params.id;
+    Reward.getAll(id,function (result) {
         res.json(result);
-    });
+    })
 };
 
 exports.create = function(req, res){
+
     let user_data = {
         "username": req.body.username
     };
