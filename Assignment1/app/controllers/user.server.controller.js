@@ -4,8 +4,14 @@
 const User = require('../models/user.server.model');
 
 exports.list = function(req, res){
-    User.getAll(function (result) {
-        res.json(result);
+    let id = req.params.id;
+    User.getAllUsers(id, function (err, result) {
+        if (err) {
+            res.sendStatus(404);
+        } else {
+            res.sendStatus(200);
+            res.json(result);
+        }
     });
 };
 
@@ -42,7 +48,10 @@ exports.userById = function(req, res){
 };
 
 exports.login = function(req, res){
-    return null;
+    let username = req.body.username;
+    let password = req.body.password;
+
+
 };
 
 exports.logout = function(req, res){

@@ -21,3 +21,20 @@ exports.alter = function(user_id, pledge_amount, description, project_id, done){
         done(result);
     });
 };
+
+exports.getProjectPerBacker = function (user_id, done) {
+    const selectProjectByUserif = 'SELECT `creator`.`project_id` FROM `seng 365`.`creator` ' +
+        'WHERE `creator`.`creator_id` = ?';
+    db.get().query(selectProjectByUserif, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
+
+exports.checkIfIDExists = function (user_id, done) {
+    const selectUserID = 'SELECT 1 ` FROM `seng 365`.`user` WHERE `user`.`id = ?';
+    db.get().query(selectUserID, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
