@@ -15,35 +15,71 @@ exports.list = function(req, res){
     });
 };
 
-exports.create = function(req, res){
+exports.update = function(req, res){
+    let id = req.params.id;
     let user_data = {
-        "username": req.body.username
+        "username": req.body.user.username,
+        "location": req.body.user.location,
+        "email": req.body.user.email,
+        "password": req.body.password
     };
-    console.log(user_data);
-    let user = user_data['username'].toString();
-
+    let username = user_data['username'].toString();
+    let location = user_data['location'].toString();
+    let email = user_data['email'].toString();
+    let password = user_data['password'].toString();
     let values = [
-        [user]
+        [id, username, location, email]
     ];
 
-    User.insert(values, function (result) {
-        res.json(result);
+    if (id != user_id) {
+        res.sendStatus(403);
+        res.json({"Forbidden":"account not owned"});
+    }
+
+    User.checkIfIDExists(id, function (err) {
+        if (err) {
+            res.sendStatus(404);
+            res.json({"ERROR":"User not found"});
+        }
+    });
+
+    User.alter(values, function (err, result) {
+        if (err) {
+            res.sendStatus(400);
+            res.json("Malformed request");
+        } else {
+            res.sendStatus(201);
+            res.json(result);
+        }
     });
 };
 
-exports.read = function(req, res){
-    return null;
-};
-
-exports.update = function(req, res){
-    return null;
+exports.create = function(req, res){
+    let user_data = {
+        "username": req.body.user.username,
+        "location": req.body.user.location,
+        "email": req.body.user.email,
+        "password": req.body.password
+    };
+    let username = user_data['username'].toString();
+    let location = user_data['location'].toString();
+    let email = user_data['email'].toString();
+    let password = user_data['password'].toString();
+    let values = [
+        [id, username, location, email]
+    ];
+    User.insert(function (err, result) {
+        if (err) {
+            res.sendStatus(400);
+            res.json("Malformed request");
+        } else {
+            res.sendStatus(201);
+            res.json(result);
+        }
+    });
 };
 
 exports.delete = function(req, res){
-    return null;
-};
-
-exports.userById = function(req, res){
     return null;
 };
 

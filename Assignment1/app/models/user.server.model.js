@@ -19,9 +19,9 @@ exports.insert = function(user_id, password, username, location, email, done){
         'VALUES (?,?,?,?)';
     let values2 = [user_id, username, location, email];
 
-    db.get().query(insertUser, values1, function (err, result) {
+    db.get().query(insertUser, values1, function (err, next) {
         if (err) return done(err);
-        done(result);
+        next();
     });
 
     db.get().query(insetPublicUser, values2, function (err, result) {
@@ -60,6 +60,14 @@ exports.insertToken = function (user_id, token, done) {
 exports.logout = function (user_id, done) {
     const deleteToken = 'DELETE FROM `seng_365`.`login_response` WHERE `login_id`=?;';
     db.get().query(deleteToken, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
+
+exports.checkIfIDExists = function (user_id, done) {
+    const selectUserID = 'SELECT 1 ` FROM `seng 365`.`user` WHERE `user`.`id = ?';
+    db.get().query(selectUserID, user_id, function (err, result) {
         if (err) return done(err);
         done(result);
     });

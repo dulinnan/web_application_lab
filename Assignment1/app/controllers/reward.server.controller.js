@@ -42,8 +42,13 @@ exports.update = function(req, res){
             }
         }
     });
-    Reward.alter(values, function (result) {
-        res.sendStatus(201);
-        res.json(result);
+    Reward.alter(values, function (err, result) {
+        if (err) {
+            res.sendStatus(400);
+            res.json("Malformed request");
+        } else {
+            res.sendStatus(201);
+            res.json(result);
+        }
     });
 };
