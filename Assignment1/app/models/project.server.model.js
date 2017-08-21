@@ -44,8 +44,8 @@ exports.getRewardsPerProject = function (project_id, done) {
 };
 
 exports.getProjectDetail = function (project_id, done) {
-    const selectProjectDetail = 'SELECT `project`.`project_id`, `project`.`creation_date` FROM `mysql`.`project` ' +
-        'WHERE  `project`.`project_id` =?';
+    const selectProjectDetail = '        // .put(projects.update);
+        // .patch(projects.updateProgress);';
     db.get().query(selectProjectDetail, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
         return done(null, rows);
