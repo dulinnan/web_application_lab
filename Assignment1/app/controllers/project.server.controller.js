@@ -3,12 +3,11 @@
  */
 const Project = require('../models/project.server.model');
 exports.listAll = function(req, res){
-    let startIndex = req.params.startIndex;
-    let integer = req.params.integer;
-    Project.getAllProjects(function (result) {
-        var output = Object.keys(result)[startIndex];
+    let startIndex = req.query.startIndex;
+    let integer = req.query.integer;
+    Project.getAllProjects(startIndex,integer, function (result) {
         res.sendStatus(200);
-        res.json(output);
+        res.json(result);
     });
 };
 
@@ -19,10 +18,10 @@ exports.create = function(req, res){
         "description": req.body.description,
         "imageUri": req.body.imageUri,
         "target": req.body.target,
-        "creator_id": req.body.creators.id,
-        "rewards_id": req.body.rewards.id,
-        "rewards_amount": req.body.rewards.amount,
-        "rewards_description": req.body.rewards.description
+        "creator_id": req.body.creators[0].id,
+        "rewards_id": req.body.rewards[0].id,
+        "rewards_amount": req.body.rewards[0].amount,
+        "rewards_description": req.body.reward[0].description
     };
     let title = project_data['title'].toString();
     let subtitle = project_data['subtitle'].toString();

@@ -14,10 +14,6 @@ exports.buildDatabase = function() {
     )
 };
 
-exports.getCreatorName = function(){
-
-};
-
 exports.createUser = function(){
     const userTable = 'CREATE TABLE IF NOT EXISTS `user` (`id` int(11) NOT NULL, `password` varchar(45) DEFAULT NULL, ' +
         'PRIMARY KEY (`id`) ENGINE=InnoDB DEFAULT CHARSET=utf8 ' +

@@ -3,10 +3,11 @@
  */
 const db = require('../../config/db.js');
 
-exports.getAllProjects = function(done){
+exports.getAllProjects = function(start, count, done){
     const getAllProjects = 'SELECT `project_data`.`project_id`, `project_data`.`title`, `project_data`.`subtitle`, ' +
-        '`project_data`.`image_uri` FROM `seng_365`.`project_data`;';
-    db.get().query(getAllProjects, function(err, rows) {
+        '`project_data`.`image_uri` FROM `seng_365`.`project_data` LIMIT ?,?;';
+    let values = [start, start+count];
+    db.get().query(getAllProjects, values, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
         return done(rows);
     })
