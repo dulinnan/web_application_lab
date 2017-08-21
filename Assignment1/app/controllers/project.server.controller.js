@@ -132,7 +132,10 @@ exports.listOne = function (req, res) {
                         };
                         creator_list.push(creator_lists);
                         rewards_queue = {creator_list};
+                        data[0]['project']["data"]['creator'] = creator_lists;
                     }
+
+                    console.log(data[0]);
                 }
 
                 Project.getRewardsPerProject(project_id, function (err, result) {
