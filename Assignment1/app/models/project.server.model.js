@@ -86,9 +86,16 @@ exports.postImage = function (project_id, image_uri, done) {
     });
 };
 
-exports.alterClose = function (project_id, done) {
-    const alterProjectOpen = 'UPDATE `seng_365`.`project` SET `open` = 0 WHERE `project_id` = ?;';
-    db.get().query(alterProjectOpen, project_id, function (err, result) {
+exports.alterClose = function (project_id, open_status, done) {
+    let open_target = 0;
+    if (open_status === 0) {
+        open_target = 1;
+    } else {
+        open_target = 0;
+    }
+    let values = [open_target, project_id];
+    const alterProjectOpen = 'UPDATE `seng_365`.`project` SET `open` = ? WHERE `project_id` = ?;';
+    db.get().query(alterProjectOpen, values, function (err, result) {
         if (err) return done(err);
         done(result);
     });
@@ -99,6 +106,33 @@ exports.postPledge = function (amount, anonymous, project_id, backer_id, done) {
             'VALUES (?, ?, ?, ?);';
     let values = [amount, anonymous, project_id, backer_id];
     db.get().query(insertPledge, values, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
+
+exports.updateProgress = function (project_id, done) {
+    const updateProgress = 'UPDATE `seng_365`.`progress` SET `progress`.`current_pledged` = ' +
+        '(SELECT SUM(`pledge`.`amount`) FROM `seng_365`.`pledge` WHERE `pledge`.`project_id` = ?), ' +
+        '`number_of_backers` = (SELECT DISTINCT COUNT(`backer`.``backer_id) FROM `seng_365`.`backer` ' +
+        'WHERE `backer`.`project_id` = ?) WHERE `project_id` = ?';
+
+    let values = [project_id,project_id,project_id];
+    db.get().query(updateProgress, values, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    })
+    
+};
+
+exports.postProject = function (done) {
+    const insertProject = 'INSERT INTO project VALUE();';
+    const returnRecentID = 'SELECT LAST_INSERT_ID();';
+    db.get().query(insertProject, function (err, next) {
+        if (err) return done(err);
+        next()
+    });
+    db.get().query(returnRecentID, function (err, result) {
         if (err) return done(err);
         done(result);
     });
@@ -131,3 +165,54 @@ exports.postCreator = function (project_id, creator_id, done) {
         done(result);
     });
 };
+
+exports.getProjectCreator = function (project_id, done) {
+    const selectCreator = 'SELECT `creator`.`creator_id` FROM `seng_365`.`creator` WHERE `creator`.`project_id` = ?;';
+    db.get().query(selectCreator, project_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
+
+exports.getBackID = function (project_id, done) {
+    const selectBackID = 'SELECT `backer`.`backer_id` FROM `seng_365`.`backer` WHERE `backer`.`project_id` = ?;';
+    db.get().query(selectBackID, project_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
+
+exports.getCurrentCreated = function (user_id, done) {
+    const countCurrentCreated = 'SELECT 1 FROM `seng 365`.`creator` ' +
+        'WHERE `creator`.`creator_id` = ?';
+    db.get().query(countCurrentCreated, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    })
+};
+
+exports.getCurrentIDDetail = function (user_id, done) {
+    const checkCurrentID = 'SELECT 1 FROM `seng 365`.`user` WHERE `user`.`id` = ?';
+    db.get().query(checkCurrentID, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    })
+};
+
+exports.deleteUserOnly = function (user_id, done) {
+    const deleteUserOnly = 'DELETE FROM `seng 365`.`User` WHERE `User`.`id` = ?;'
+    db.get().query(deleteUserOnly, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    })
+};
+
+exports.updateOpenStatus = function (user_id, done) {
+    const updateOpen = 'UPDATE `seng 365.`project` p JOIN `seng 365.`creator` c SET p.`open` = 0 ' +
+        'WHERE c.`creator_id` = ?';
+    db.get().query(updateOpen, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    })
+};
+

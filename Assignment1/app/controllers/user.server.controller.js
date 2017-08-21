@@ -65,22 +65,30 @@ exports.create = function(req, res){
     let location = user_data['location'].toString();
     let email = user_data['email'].toString();
     let password = user_data['password'].toString();
-    let values = [
-        [id, username, location, email]
-    ];
-    User.insert(function (err, result) {
-        if (err) {
+    // let values = [
+    //     [id, username, location, email]
+    // ];
+    User.checkIfUsernameDuplicate(username, function (err) {
+        if (!err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            res.json({"ERROR":"Username already exists!"});
         } else {
-            res.sendStatus(201);
-            res.json(result);
+            User.insert(function (err, result) {
+                if (err) {
+                    res.sendStatus(400);
+                    res.json("Malformed request");
+                } else {
+                    res.sendStatus(201);
+                    res.json(result);
+                }
+            });
         }
-    });
+    })
 };
 
 exports.delete = function(req, res){
-    return null;
+    let id = req.params.id;
+    TODO
 };
 
 exports.login = function(req, res){

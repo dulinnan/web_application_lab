@@ -25,7 +25,7 @@ CREATE TABLE `login_response` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='each token assign to a id';
 
 CREATE TABLE `pledge` (
-  `pledge_id` int(11) NOT NULL,
+  `pledge_id` int(11) NOT NULL AUTO_INCREMENT,
   `amount` int(11) NOT NULL,
   `anonymous` tinyint(4) DEFAULT NULL,
   `project_id` int(11) NOT NULL,
@@ -39,8 +39,8 @@ CREATE TABLE `pledge` (
 
 CREATE TABLE `progress` (
   `target` int(11) NOT NULL,
-  `current_Pledged` varchar(45) DEFAULT NULL,
-  `number_Of_Backers` varchar(45) DEFAULT NULL,
+  `current_pledged` varchar(45) DEFAULT NULL,
+  `number_of_backers` varchar(45) DEFAULT NULL,
   `project_id` int(11) NOT NULL,
   PRIMARY KEY (`project_id`),
   CONSTRAINT `project_id_progress` FOREIGN KEY (`project_id`) REFERENCES `project` (`project_id`) ON DELETE NO ACTION ON UPDATE NO ACTION

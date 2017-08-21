@@ -11,18 +11,26 @@ exports.getAllUsers = function(user_id, done){
     })
 };
 
-exports.insert = function(user_id, password, username, location, email, done){
-    const insertUser = 'INSERT INTO `seng_365`.`user` (`id`,`password`) VALUES (?, ?);';
-    let values1 = [user_id, password];
-
-    const insetPublicUser = 'INSERT INTO `seng_365`.`public_user` (`id`, `username`, `location`,`email`) ' +
-        'VALUES (?,?,?,?)';
-    let values2 = [user_id, username, location, email];
+exports.insert = function(password, username, location, email, done){
+    let insertId = 0;
+    const insertUser = 'INSERT INTO `seng_365`.`user` (`password`) VALUES (?);';
+    let values1 = [password];
+    const returnRecentID = 'SELECT LAST_INSERT_ID();';
 
     db.get().query(insertUser, values1, function (err, next) {
         if (err) return done(err);
-        next();
+        next()
     });
+
+    db.get().query(returnRecentID, function (err, result, next) {
+        if (err) return done(err);
+        insertId = result;
+        next()
+    });
+
+    const insetPublicUser = 'INSERT INTO `seng_365`.`public_user` (`id`, `username`, `location`,`email`) ' +
+        'VALUES (?,?,?,?)';
+    let values2 = [insertId, username, location, email];
 
     db.get().query(insetPublicUser, values2, function (err, result) {
         if (err) return done(err);
@@ -68,6 +76,14 @@ exports.logout = function (user_id, done) {
 exports.checkIfIDExists = function (user_id, done) {
     const selectUserID = 'SELECT 1 ` FROM `seng 365`.`user` WHERE `user`.`id = ?';
     db.get().query(selectUserID, user_id, function (err, result) {
+        if (err) return done(err);
+        done(result);
+    });
+};
+
+exports.checkIfUsernameDuplicate = function (username, done) {
+    const selectUserUsername = 'SELECT 1 ` FROM `seng 365`.`public_user` WHERE `public_user`.`username = ?';
+    db.get().query(selectUserUsername, username, function (err, result) {
         if (err) return done(err);
         done(result);
     });
