@@ -1,10 +1,10 @@
-CREATE DATABASE `seng_365` /*!40100 DEFAULT CHARACTER SET utf8 */;
+CREATE DATABASE `mysql` /*!40100 DEFAULT CHARACTER SET utf8 */;
 CREATE TABLE `backer` (
   `project_id` int(11) DEFAULT NULL,
   `backer_id` int(11) DEFAULT NULL,
   KEY `project_id_backer_idx` (`project_id`),
   KEY `backer_id_ref_idx` (`backer_id`),
-  CONSTRAINT `backer_id_ref` FOREIGN KEY (`backer_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `backer_id_ref` FOREIGN KEY (`backer_id`) REFERENCES `Users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `project_id_backer` FOREIGN KEY (`project_id`) REFERENCES `project` (`project_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='link supporter to the project';
 
@@ -14,14 +14,14 @@ CREATE TABLE `creator` (
   KEY `id_idx` (`project_id`),
   KEY `id_idx1` (`creator_id`),
   CONSTRAINT `project_id_ref` FOREIGN KEY (`project_id`) REFERENCES `project` (`project_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `user_id_ref` FOREIGN KEY (`creator_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `user_id_ref` FOREIGN KEY (`creator_id`) REFERENCES `Users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='link creator and projects';
 
 CREATE TABLE `login_response` (
   `login_id` int(11) NOT NULL,
   `token` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`login_id`),
-  CONSTRAINT `user_id_ref_login` FOREIGN KEY (`login_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `user_id_ref_login` FOREIGN KEY (`login_id`) REFERENCES `Users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='each token assign to a id';
 
 CREATE TABLE `pledge` (
@@ -33,7 +33,7 @@ CREATE TABLE `pledge` (
   PRIMARY KEY (`pledge_id`),
   KEY `project_id_ref_pledge_idx` (`project_id`),
   KEY `backer_id_ref_pledge_idx` (`backer_id`),
-  CONSTRAINT `backer_id_ref_pledge` FOREIGN KEY (`backer_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `backer_id_ref_pledge` FOREIGN KEY (`backer_id`) REFERENCES `Users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `project_id_ref_pledge` FOREIGN KEY (`project_id`) REFERENCES `project` (`project_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='money from backer, single time single count';
 
@@ -71,8 +71,8 @@ CREATE TABLE `project_data` (
 --  `location` varchar(45) DEFAULT NULL,
 --  `email` varchar(45) DEFAULT NULL,
 --  PRIMARY KEY (`id`),
---  CONSTRAINT `user_id_ref_public` FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
---) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='basic info about user';
+--  CONSTRAINT `user_id_ref_public` FOREIGN KEY (`id`) REFERENCES `Users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='basic info about Users';
 
 CREATE TABLE `reward` (
   `reward_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -85,8 +85,8 @@ CREATE TABLE `reward` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='a project reward';
 
 
---CREATE TABLE `user` (
+--CREATE TABLE `Users` (
 --  `id` int(11) NOT NULL,
 --  `password` varchar(45) DEFAULT NULL,
 --  PRIMARY KEY (`id`)
---) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='user info and password';
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Users info and password';

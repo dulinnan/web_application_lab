@@ -1,17 +1,17 @@
 # get /users/{id}
 SELECT *
-FROM `seng_365`.`public_user`
+FROM `mysql`.`public_user`
 WHERE 'id' = ?
 
 # post /users
-INSERT INTO `seng_365`.`user`
+INSERT INTO `mysql`.`Users`
 (`id`,
 `password`)
 VALUES
 (<{id: }>,
 <{password: }>);
 
-INSERT INTO `seng_365`.`public_user`
+INSERT INTO `mysql`.`public_user`
 (`id`,
 `username`,
 `location`,
@@ -23,17 +23,17 @@ VALUES
 <{email: }>);
 
 # login /users/login
-INSERT INTO `seng_365`.`login_response`
+INSERT INTO `mysql`.`login_response`
 (`login_id`)
 VALUES
 (<{login_id: }>);
 
 # logout /users/logout (where login id = input)
-DELETE FROM `seng_365`.`login_response`
+DELETE FROM `mysql`.`login_response`
 WHERE <{where_expression}>;
 
 # put /users/{id}
-UPDATE `seng_365`.`public_user`
+UPDATE `mysql`.`public_user`
 SET
 `username` = <{username: }>,
 `location` = <{location: }>,
@@ -41,6 +41,5 @@ SET
 WHERE `id` = <{expr}>;
 
 #delete /users/{id} (where id = input)
-DELETE FROM `seng_365`.`user`
+DELETE FROM `mysql`.`Users`
 WHERE <{where_expression}>;
-

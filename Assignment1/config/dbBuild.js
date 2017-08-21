@@ -19,7 +19,7 @@ exports.createUser = function(){
         'PRIMARY KEY (`id`) ENGINE=InnoDB DEFAULT CHARSET=utf8 ' +
         'COMMENT="user info and password";';
 
-    db.get().query(userTable,function (err, rows){
+    db.get().query("CREATE TABLE IF NOT EXISTS `user` (`id` int(11) NOT NULL, `password` varchar(45) DEFAULT NULL, ' + 'PRIMARY KEY (`id`)",function (err, rows){
             if (err) console.log(err);
         }
     )
