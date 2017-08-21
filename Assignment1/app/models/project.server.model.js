@@ -8,8 +8,10 @@ exports.getAllProjects = function(start, count, done){
         '`project_data`.`image_uri` FROM `mysql`.`project_data` LIMIT ?,?;';
     let values = [start, start+count];
     db.get().query(getAllProjects, values, function(err, rows) {
+        console.log({"err":err});
+        console.log({"rows":rows});
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
@@ -28,7 +30,7 @@ exports.getOneProjectData = function (project_id, done) {
         'WHERE `project_data`.`project_id` = ?';
     db.get().query(selectOneProjectData, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 

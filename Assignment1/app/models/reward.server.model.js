@@ -6,9 +6,9 @@ const db = require('../../config/db.js');
 exports.getAll = function(user_id, done){
     const getRewards = 'SELECT `reward`.`reward_id`, `reward`.`amount`, `reward`.`description` ' +
         'FROM `mysql`.`reward` WHERE `reward`.`project_id` = ?';
-    db.get().query(getRewards, [user_id], function(err, rows) {
+    db.get().query(getRewards, user_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 

@@ -4,12 +4,14 @@
 const Reward = require('../models/reward.server.model');
 exports.list = function(req, res){
     let id = req.params.id;
+    console.log({"ID":id});
     Reward.getAll(id, function (err, result) {
         if (err) {
             res.sendStatus(404);
         } else {
-            res.sendStatus(200);
             res.json(result);
+            // res.sendStatus(200);
+
         }
     })
 };

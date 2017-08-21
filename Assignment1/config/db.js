@@ -11,21 +11,20 @@ exports.connect = function(done) { state.pool = mysql.createPool({
     user: 'root',
     password: "secret",
     port: '6033',
-    database: "chatapp" //NOTE: we need to create this first
+    database: "mysql" //NOTE: we need to create this first
 });
     // exports.createUser = function(){
     //
     //         }
     //     )
     // };
-    const userTable = 'CREATE TABLE IF NOT EXISTS `user` (`id` int(11) NOT NULL, `password` varchar(45) DEFAULT NULL, ' +
-        'PRIMARY KEY (`id`) ENGINE=InnoDB DEFAULT CHARSET=utf8 ' +
-        'COMMENT="user info and password";';
-
-    state.pool.query("CREATE TABLE IF NOT EXISTS `user` (`id` int(11) NOT NULL, `password` varchar(45) DEFAULT NULL, ' + 'PRIMARY KEY (`id`)",function (err, rows){
-        if (err) return err;
-        return rows;
-    });
+    // const userTable = 'CREATE TABLE IF NOT EXISTS `Users` (`id` int(11) NOT NULL, `password` varchar(45) DEFAULT NULL, ' +
+    //     'PRIMARY KEY (`id`);';
+    //
+    // state.pool.query(userTable,function (err, rows){
+    //     if (err) return err;
+    //     return rows;
+    // });
     done();
 };
 

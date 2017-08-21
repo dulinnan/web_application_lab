@@ -4,10 +4,15 @@
 const Project = require('../models/project.server.model');
 exports.listAll = function(req, res){
     let startIndex = parseInt(req.query.startIndex);
-    let integer = parseInt(req.query.integer);
-    Project.getAllProjects(startIndex,integer, function (result) {
-        res.sendStatus(200);
-        res.json(result);
+    let count = parseInt(req.query.count);
+    Project.getAllProjects(startIndex,count, function (err, result) {
+        if (err) {
+            res.sendStatus(400);
+            res.json("Malformed request");
+        } else {
+            res.json(result);
+        }
+
     });
 };
 
@@ -81,7 +86,7 @@ exports.listOne = function (req, res) {
     Project.getBacker(project_id, function (err, result, next) {
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
             backer_list += result;
             next()
@@ -91,7 +96,7 @@ exports.listOne = function (req, res) {
     Project.getProgress(project_id, function (err, result, next) {
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
             progress_list += result;
             next()
@@ -101,7 +106,7 @@ exports.listOne = function (req, res) {
     Project.getRewardsPerProject(project_id, function (err, result, next) {
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
             rewards_list += result;
             next()
@@ -111,7 +116,7 @@ exports.listOne = function (req, res) {
     Project.getProjectCreator(project_id, function (err, result, next) {
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
             creator_list += result;
             next()
@@ -121,7 +126,7 @@ exports.listOne = function (req, res) {
     Project.getOneProjectData(project_id, function (err, result, next){
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
             project_data_list += result;
             project_data_list += creator_list;
@@ -133,13 +138,13 @@ exports.listOne = function (req, res) {
     Project.getProjectDetail(project_id, function (err, result){
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
             project_detail_list += result;
             project_detail_list += project_data_list;
             project_detail_list += progress_list;
             project_detail_list += backer_list;
-            res.sendStatus(201);
+            // res.sendStatus(201);
             res.json(project_detail_list);
         }
     });

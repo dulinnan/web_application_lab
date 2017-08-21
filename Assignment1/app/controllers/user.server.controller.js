@@ -4,12 +4,14 @@
 const User = require('../models/user.server.model');
 
 exports.list = function(req, res){
+
     let id = req.params.id;
     User.getAllUsers(id, function (err, result) {
+
+        // console.log(err);
         if (err) {
             res.sendStatus(404);
         } else {
-            res.sendStatus(200);
             res.json(result);
         }
     });

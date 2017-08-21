@@ -4,10 +4,12 @@
 const db = require('../../config/db.js');
 
 exports.getAllUsers = function(user_id, done){
-    const selectAllUsers = 'SELECT * FROM `mysql`.`public_user` WHERE `id` = ?';
+    let selectAllUsers = 'SELECT * FROM `mysql`.`public_user` WHERE `id` = ?';
     db.get().query(selectAllUsers, user_id, function(err, rows) {
+        // console.log(err);
+        // console.log(rows);
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
