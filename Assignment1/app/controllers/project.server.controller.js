@@ -76,78 +76,132 @@ exports.create = function(req, res){
 
 exports.listOne = function (req, res) {
     let project_id = req.params.id;
-    let backer_list = {};
-    let progress_list = {};
-    let rewards_list = {};
-    let creator_list = {};
-    let project_data_list = {};
-    let project_detail_list = {};
-
-    Project.getBacker(project_id, function (err, result, next) {
-        if (err) {
-            res.sendStatus(400);
-            // res.json("Malformed request");
-        } else {
-            backer_list += result;
-            next()
-        }
-    });
-
-    Project.getProgress(project_id, function (err, result, next) {
-        if (err) {
-            res.sendStatus(400);
-            // res.json("Malformed request");
-        } else {
-            progress_list += result;
-            next()
-        }
-    });
-
-    Project.getRewardsPerProject(project_id, function (err, result, next) {
-        if (err) {
-            res.sendStatus(400);
-            // res.json("Malformed request");
-        } else {
-            rewards_list += result;
-            next()
-        }
-    });
-
-    Project.getProjectCreator(project_id, function (err, result, next) {
-        if (err) {
-            res.sendStatus(400);
-            // res.json("Malformed request");
-        } else {
-            creator_list += result;
-            next()
-        }
-    });
-
-    Project.getOneProjectData(project_id, function (err, result, next){
-        if (err) {
-            res.sendStatus(400);
-            // res.json("Malformed request");
-        } else {
-            project_data_list += result;
-            project_data_list += creator_list;
-            project_data_list += rewards_list;
-            next()
-        }
-    });
+    let backer_list = [];
+    let progress_list = [];
+    let rewards_list = [];
+    let creator_list = [];
+    let project_data_list = [];
+    let project_detail_list = [];
+    let project_detail_queue = {};
 
     Project.getProjectDetail(project_id, function (err, result){
         if (err) {
             res.sendStatus(400);
             // res.json("Malformed request");
         } else {
-            project_detail_list += result;
-            project_detail_list += project_data_list;
-            project_detail_list += progress_list;
-            project_detail_list += backer_list;
-            // res.sendStatus(201);
-            res.json(project_detail_list);
+            for (let item of result) {
+                let project_detail_lists = {
+                    "id": item['project_id'],
+                    "creationDate": item['creation_date']
+                };
+                project_detail_queue = {"project": project_detail_lists};
+            }
+            // console.log(project_detail_queue);
         }
+
+        Project.getOneProjectData(project_id, function (err, result){
+            if (err) {
+                res.sendStatus(400);
+                // res.json("Malformed request");
+            } else {
+                for (let item of result) {
+                    let project_data_lists = {
+                        "title": item['title'],
+                        "subtitle": item['subtitle'],
+                        "image_uri": item['image_uri'],
+                        "description": item['creator_id'],
+                        "target": item['target']
+                    };
+                    project_data_list.push(project_data_lists);
+                }
+                project_detail_queue += project_data_list;
+                console.log(project_detail_queue);
+            }
+
+
+        });
     });
+
+    Project.getBacker(project_id, function (err, result) {
+        if (err) {
+            res.sendStatus(400);
+            // res.json("Malformed request");
+        } else {
+            for (let item of result) {
+                let back_list = {
+                    "name":item['username'],
+                    "amount":item['amount']
+                };
+                backer_list.push(back_list) ;
+            }
+            let backer_queue = {"backers": backer_list};
+            res.json(backer_queue);
+        }
+
+        Project.updateProgress(project_id, function (err, result) {
+            if (err) {
+                res.sendStatus(400);
+            }
+            console.log("pass updateProgress");
+            Project.getProgress(project_id, function (err, result) {
+                if (err) {
+                    res.sendStatus(400);
+                } else {
+                    for (let item of result) {
+                        let progress_lists = {
+                            "target":item['target'],
+                            "currentPledged": item['current_pledged'],
+                            "numberOfBackers": item['number_of_backers']
+                        };
+                        progress_list.push(progress_lists);
+                    }
+                    console.log("pass getProgress");
+                }
+                Project.getRewardsPerProject(project_id, function (err, result) {
+                    if (err) {
+                        res.sendStatus(400);
+                    } else {
+                        for (let item of result) {
+                            let rewards_lists = {
+                                "id": item['reward_id'],
+                                "amount": item['amount'],
+                                "description": item['description']
+                            };
+                            rewards_list.push(rewards_lists);
+                        }
+                        console.log("pass getRewardsPerProject");
+                    }
+
+                    Project.getProjectCreator(project_id, function (err, result) {
+                        if (err) {
+                            res.sendStatus(400);
+                        } else {
+                            for (let item of result) {
+                                let creator_lists = {
+                                    "id": item['creator_id'],
+                                };
+                                creator_list.push(creator_lists);
+                            }
+                            console.log("pass getProjectCreator");
+                        }
+
+
+                    });
+                });
+            });
+        });
+    });
+
+
+
+    //
+
+    //
+
+    //
+
+    //
+
 };
 
 exports.update = function(req, res){
@@ -213,19 +267,21 @@ exports.updateImage = function (req, res) {
 exports.insertPledge = function (req, res) {
     let project_id = req.params.id;
     let pledge_data = {
+        "user_id": req.body.id,
         "amount": req.body.amount,
         "anonymous": req.body.anonymous};
 
+    let user_id = pledge_data['user_id'].toString();
     let amount = pledge_data['amount'].toString();
     let anonymous = pledge_data['anonymous'].toString();
 
     Project.getBackID(project_id, function (err, result, next) {
         if (err) {
-            res.sendStatus(404);
+            // res.sendStatus(404);
             res.json("NOT FOUND");
         } else {
             if (user_id in result) {
-                res.sendStatus(403);
+                // res.sendStatus(403);
                 res.json("Forbidden - cannot pledge to own project - this is fraud!");
             }
             next()
@@ -234,11 +290,11 @@ exports.insertPledge = function (req, res) {
 
     Project.postPledge(amount,anonymous,project_id, user_id, function (err, result) {
         if (err) {
-            res.sendStatus(400);
+            // res.sendStatus(400);
             res.json("Bad user, project, or pledge details");
         } else {
             Project.updateProgress(project_id);
-            res.sendStatus(200);
+            // res.sendStatus(200);
             res.json(result);
         }
     })
@@ -274,3 +330,18 @@ exports.delete = function(req, res){
         }
     });
 };
+
+exports.updateProgress = function (req, res) {
+    let project_id = req.params.id;
+    Project.updateProgress(project_id, function (err, result) {
+
+        console.log({"ERR":err});
+        console.log({"result":result});
+        if (err) {
+            res.sendStatus(400);
+        } else {
+            res.json(result);
+        }
+    });
+
+}

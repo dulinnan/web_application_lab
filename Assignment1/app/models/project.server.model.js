@@ -35,39 +35,41 @@ exports.getOneProjectData = function (project_id, done) {
 };
 
 exports.getRewardsPerProject = function (project_id, done) {
-    const selectRewardsByID = 'SELECT `reward`.`reward_id`, `reward`.`amount`, `reward`.`description`, ' +
-        'FROM `mysql`.`reward` WHERE `reward`.`project_id` = ?';
+    const selectRewardsByID = 'SELECT `reward`.`reward_id`, `reward`.`amount`, `reward`.`description` ' +
+        'FROM `mysql`.`reward` WHERE `reward`.`project_id` = ?;';
     db.get().query(selectRewardsByID, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
 exports.getProjectDetail = function (project_id, done) {
-    const selectProjectDetail = 'SELECT `project`.`creation_date` FROM `mysql`.`project` ' +
+    const selectProjectDetail = 'SELECT `project`.`project_id`, `project`.`creation_date` FROM `mysql`.`project` ' +
         'WHERE  `project`.`project_id` =?';
     db.get().query(selectProjectDetail, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
 exports.getProgress = function (project_id, done) {
-    const selectProgress = 'SELECT `progress`.`target`, `progress`.`current_Pledged`, `progress`.`number_Of_Backers` ' +
-        'FROM `mysql`.`progress` WHERE `progress`.`project_id` = ?';
+    const selectProgress = 'SELECT `project_data`.`target`,`progress`.`current_pledged`, `progress`.`number_of_backers` ' +
+        'FROM `mysql`.`progress` JOIN `mysql`.`project_data` ' +
+        'ON `progress`.`project_id` =`project_data`.`project_id` WHERE `progress`.`project_id` = ?;';
     db.get().query(selectProgress, project_id, function (err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
 exports.getBacker = function (project_id, done) {
     const selectBacker = 'SELECT `public_user`.`username`, `pledge`.`amount` FROM `mysql`.`pledge` ' +
-        'JOIN `public_user`.`username` ON `pledge`.`backer_id` =  `public_user`.`id` ' +
-        'WHERE  `pledge`.`project_id` = ? AND `pledge`.`backer_id` = `public_user`.`id` AND `pledge`.`anonymous` = 0';
+        'JOIN `mysql`.`public_user` ON `pledge`.`backer_id` = `public_user`.`id` ' +
+        'WHERE  `pledge`.`project_id` = 1 AND `pledge`.`backer_id` = `public_user`.`id` ' +
+        'AND `pledge`.`anonymous` = 0;';
     db.get().query(selectBacker, project_id, function (err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
@@ -110,20 +112,20 @@ exports.postPledge = function (amount, anonymous, project_id, backer_id, done) {
     let values = [amount, anonymous, project_id, backer_id];
     db.get().query(insertPledge, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        return done(null, result);
     });
 };
 
 exports.updateProgress = function (project_id, done) {
-    const updateProgress = 'UPDATE `mysql`.`progress` SET `progress`.`current_pledged` = ' +
-        '(SELECT SUM(`pledge`.`amount`) FROM `mysql`.`pledge` WHERE `pledge`.`project_id` = ?), ' +
-        '`number_of_backers` = (SELECT DISTINCT COUNT(`backer`.``backer_id) FROM `mysql`.`backer` ' +
-        'WHERE `backer`.`project_id` = ?) WHERE `project_id` = ?';
+    const updateProgress = 'UPDATE `mysql`.`progress` SET `progress`.`current_pledged` = (SELECT SUM(`pledge`.`amount`) ' +
+        'FROM `mysql`.`pledge` WHERE `pledge`.`project_id` = ?), ' +
+        '`number_of_backers` = (SELECT DISTINCT COUNT(`backer`.`backer_id`) ' +
+        'FROM `mysql`.`backer` WHERE `backer`.`project_id` = ?) WHERE `project_id` = ?';
 
     let values = [project_id,project_id,project_id];
     db.get().query(updateProgress, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     })
 
 };
@@ -131,9 +133,9 @@ exports.updateProgress = function (project_id, done) {
 exports.postProject = function (done) {
     const insertProject = 'INSERT INTO project VALUE();';
     const returnRecentID = 'SELECT LAST_INSERT_ID();';
-    db.get().query(insertProject, function (err, next) {
+    db.get().query(insertProject, function (err, result) {
         if (err) return done(err);
-        next()
+
     });
     db.get().query(returnRecentID, function (err, result) {
         if (err) return done(err);
@@ -173,7 +175,7 @@ exports.getProjectCreator = function (project_id, done) {
     const selectCreator = 'SELECT `creator`.`creator_id` FROM `mysql`.`creator` WHERE `creator`.`project_id` = ?;';
     db.get().query(selectCreator, project_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
