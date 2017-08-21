@@ -12,7 +12,6 @@ exports.listAll = function(req, res){
         } else {
             res.json(result);
         }
-
     });
 };
 
@@ -41,37 +40,34 @@ exports.create = function(req, res){
     let project_id = 0;
     Project.postProject(function (result) {
         project_id = result;
+        let valuesProjectData = [
+            [project_id, title, subtitle, description, imageUri, target]
+        ];
+        let valuesReward = [
+            [rewards_amount, rewards_description, project_id]
+        ];
+        Project.postProjectData(valuesProjectData, function (err) {
+            if (err) {
+                res.sendStatus(400);
+                res.json("Malformed request");
+            }
+            Project.postReward(valuesReward, function (err) {
+                if (err) {
+                    res.sendStatus(400);
+                    res.json("Malformed request");
+                }
+                Project.postCreator(project_id, creator_id, function (err, result) {
+                    if (err) {
+                        res.sendStatus(400);
+                        res.json("Malformed request");
+                    } else {
+                        res.sendStatus(201);
+                        res.json(result);
+                    }
+                });
+            });
+        });
     });
-    let valuesProjectData = [
-        [project_id, title, subtitle, description, imageUri, target]
-    ];
-    let valuesReward = [
-        [rewards_amount, rewards_description, project_id]
-    ];
-    Project.postProjectData(valuesProjectData, function (err, next) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
-        } else next()
-    });
-
-    Project.postReward(valuesReward, function (err, next) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
-        } else next()
-    });
-
-    Project.postCreator(project_id, creator_id, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
-        } else {
-            res.sendStatus(201);
-            res.json(result);
-        }
-    });
-
 };
 
 exports.listOne = function (req, res) {
@@ -207,7 +203,6 @@ exports.update = function(req, res){
             res.json(result);
         }
     })
-
 };
 
 exports.getImage = function (req, res) {
@@ -221,7 +216,6 @@ exports.getImage = function (req, res) {
             res.json(result);
         }
     });
-
 };
 
 exports.updateImage = function (req, res) {
@@ -229,7 +223,7 @@ exports.updateImage = function (req, res) {
     let project_image = {"image": req.body.image};
     let image = project_image['image'];
 
-    Project.getProjectCreator(project_id, function (err, result, next) {
+    Project.getProjectCreator(project_id, function (err, result) {
         if (err) {
             res.sendStatus(400);
             res.json("Malformed request");
@@ -239,17 +233,15 @@ exports.updateImage = function (req, res) {
                 res.json({"Forbidden":"unable to update a project you do not own"});
             }
         }
-        next()
-    });
-
-    Project.postImage(project_id, function (err, result) {
-        if (err) {
-            res.sendStatus(404);
-            res.json("NOT FOUND");
-        } else {
-            res.sendStatus(201);
-            res.json(result);
-        }
+        Project.postImage(project_id, function (err, result) {
+            if (err) {
+                res.sendStatus(404);
+                res.json("NOT FOUND");
+            } else {
+                res.sendStatus(201);
+                res.json(result);
+            }
+        });
     });
 };
 
@@ -264,7 +256,7 @@ exports.insertPledge = function (req, res) {
     let amount = pledge_data['amount'].toString();
     let anonymous = pledge_data['anonymous'].toString();
 
-    Project.getBackID(project_id, function (err, result, next) {
+    Project.getBackID(project_id, function (err, result) {
         if (err) {
             // res.sendStatus(404);
             res.json("NOT FOUND");
@@ -273,50 +265,45 @@ exports.insertPledge = function (req, res) {
                 // res.sendStatus(403);
                 res.json("Forbidden - cannot pledge to own project - this is fraud!");
             }
-            next()
+            Project.postPledge(amount,anonymous,project_id, user_id, function (err, result) {
+                if (err) {
+                    // res.sendStatus(400);
+                    res.json("Bad user, project, or pledge details");
+                } else {
+                    Project.updateProgress(project_id);
+                    // res.sendStatus(200);
+                    res.json(result);
+                }
+            })
         }
     });
-
-    Project.postPledge(amount,anonymous,project_id, user_id, function (err, result) {
-        if (err) {
-            // res.sendStatus(400);
-            res.json("Bad user, project, or pledge details");
-        } else {
-            Project.updateProgress(project_id);
-            // res.sendStatus(200);
-            res.json(result);
-        }
-    })
 };
 
 
 exports.delete = function(req, res){
     let delete_id = req.params.id;
 
-    Project.getCurrentIDDetail(delete_id, function (err, result, next) {
+    Project.getCurrentIDDetail(delete_id, function (err, result) {
         if (err) {
             res.sendStatus(404);
             res.json("User not found");
         }
-        next()
-    });
+        Project.getCurrentCreated(delete_id, function (err, result) {
+            if (!err){
+                Project.updateOpenStatus(delete_id);
+            }
 
-    Project.getCurrentCreated(delete_id, function (err, result, next) {
-        if (!err){
-            Project.updateOpenStatus(delete_id);
-        }
-        next()
-    });
-
-    Project.deleteUserOnly(delete_id, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("User not found");
-        } else {
-            res.sendStatus(200);
-            res.json("User deleted");
-            res.json(result);
-        }
+            Project.deleteUserOnly(delete_id, function (err, result) {
+                if (err) {
+                    res.sendStatus(400);
+                    res.json("User not found");
+                } else {
+                    res.sendStatus(200);
+                    res.json("User deleted");
+                    res.json(result);
+                }
+            });
+        });
     });
 };
 
@@ -332,5 +319,4 @@ exports.updateProgress = function (req, res) {
             res.json(result);
         }
     });
-
-}
+};
