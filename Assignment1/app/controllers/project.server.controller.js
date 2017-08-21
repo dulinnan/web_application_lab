@@ -76,11 +76,15 @@ exports.create = function(req, res){
 
 exports.listOne = function (req, res) {
     let project_id = req.params.id;
+    let data = [];
     let backer_list = [];
     let progress_list = [];
     let rewards_list = [];
+    let rewards_lists = {};
+    let rewards_queue = {};
     let creator_list = [];
     let project_data_list = [];
+    let project_data_queue = {};
     let project_detail_list = [];
     let project_detail_queue = {};
 
@@ -95,8 +99,9 @@ exports.listOne = function (req, res) {
                     "creationDate": item['creation_date']
                 };
                 project_detail_queue = {"project": project_detail_lists};
+                data[0] = project_detail_queue;
             }
-            // console.log(project_detail_queue);
+            // console.log(data);
         }
 
         Project.getOneProjectData(project_id, function (err, result){
@@ -109,16 +114,44 @@ exports.listOne = function (req, res) {
                         "title": item['title'],
                         "subtitle": item['subtitle'],
                         "image_uri": item['image_uri'],
-                        "description": item['creator_id'],
+                        "description": item['description'],
                         "target": item['target']
                     };
                     project_data_list.push(project_data_lists);
+                    data[0]['project']["data"] = project_data_lists;
                 }
-                project_detail_queue += project_data_list;
-                console.log(project_detail_queue);
             }
 
+            Project.getProjectCreator(project_id, function (err, result) {
+                if (err) {
+                    res.sendStatus(400);
+                } else {
+                    for (let item of result) {
+                        let creator_lists = {
+                            "id": item['creator_id'],
+                        };
+                        creator_list.push(creator_lists);
+                        rewards_queue = {creator_list};
+                    }
+                }
 
+                Project.getRewardsPerProject(project_id, function (err, result) {
+                    if (err) {
+                        res.sendStatus(400);
+                    } else {
+                        for (let item of result) {
+                            rewards_lists = {
+                                "id": item['reward_id'],
+                                "amount": item['amount'],
+                                "description": item['description']
+                            };
+                        }
+
+                    }
+
+
+                });
+            });
         });
     });
 
@@ -157,37 +190,7 @@ exports.listOne = function (req, res) {
                     }
                     console.log("pass getProgress");
                 }
-                Project.getRewardsPerProject(project_id, function (err, result) {
-                    if (err) {
-                        res.sendStatus(400);
-                    } else {
-                        for (let item of result) {
-                            let rewards_lists = {
-                                "id": item['reward_id'],
-                                "amount": item['amount'],
-                                "description": item['description']
-                            };
-                            rewards_list.push(rewards_lists);
-                        }
-                        console.log("pass getRewardsPerProject");
-                    }
 
-                    Project.getProjectCreator(project_id, function (err, result) {
-                        if (err) {
-                            res.sendStatus(400);
-                        } else {
-                            for (let item of result) {
-                                let creator_lists = {
-                                    "id": item['creator_id'],
-                                };
-                                creator_list.push(creator_lists);
-                            }
-                            console.log("pass getProjectCreator");
-                        }
-
-
-                    });
-                });
             });
         });
     });
