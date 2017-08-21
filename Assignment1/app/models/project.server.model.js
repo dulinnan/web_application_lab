@@ -139,7 +139,7 @@ exports.postProject = function (done) {
     });
     db.get().query(returnRecentID, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
@@ -149,7 +149,7 @@ exports.postProjectData = function (project_id, title, subtitle, description, im
     let values = [title, subtitle, description, imageUri, target, project_id];
     db.get().query(insertProjectData, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
@@ -158,7 +158,7 @@ exports.postReward = function (amount, description, project_id, done){
     let values = [amount, description,project_id];
     db.get().query(insertReward, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
@@ -167,7 +167,7 @@ exports.postCreator = function (project_id, creator_id, done) {
     let values = [project_id, creator_id];
     db.get().query(insertReward, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 

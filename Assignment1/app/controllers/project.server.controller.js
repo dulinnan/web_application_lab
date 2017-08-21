@@ -25,7 +25,7 @@ exports.create = function(req, res){
         "creator_id": req.body.creators[0].id,
         "rewards_id": req.body.rewards[0].id,
         "rewards_amount": req.body.rewards[0].amount,
-        "rewards_description": req.body.reward[0].description
+        "rewards_description": req.body.rewards[0].description
     };
     let title = project_data['title'].toString();
     let subtitle = project_data['subtitle'].toString();
@@ -61,7 +61,7 @@ exports.create = function(req, res){
                         res.sendStatus(400);
                         res.json("Malformed request");
                     } else {
-                        res.sendStatus(201);
+                        // res.sendStatus(201);
                         res.json(result);
                     }
                 });
@@ -69,6 +69,31 @@ exports.create = function(req, res){
         });
     });
 };
+
+// exports.create = function(req, res){
+//     let project_data = {
+//         "title": req.body.title,
+//         "subtitle": req.body.subtitle,
+//         "description": req.body.description,
+//         "imageUri": req.body.imageUri,
+//         "target": req.body.target,
+//         "creator_id": req.body.creators[0].id,
+//         "rewards_id": req.body.rewards[0].id,
+//         "rewards_amount": req.body.rewards[0].amount,
+//         "rewards_description": req.body.rewards[0].description
+//     };
+//     let title = project_data['title'].toString();
+//     let subtitle = project_data['subtitle'].toString();
+//     let description = project_data['description'].toString();
+//     let imageUri = project_data['imageUri'].toString();
+//     let target = project_data['target'].toString();
+//     let creator_id = project_data['creator_id'].toString();
+//     let rewards_id = project_data['rewards_id'].toString();
+//     let rewards_amount = project_data['rewards_amount'].toString();
+//     let rewards_description = project_data['rewards_description'].toString();
+//     console.log(rewards_id);
+// };
+
 
 exports.listOne = function (req, res) {
     let project_id = req.params.id;
