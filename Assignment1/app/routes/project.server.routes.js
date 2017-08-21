@@ -10,8 +10,8 @@ module.exports = function(app){
 
     app.route('/projects/:id')
         .get(projects.listOne)
-        .put(projects.update)
-        .patch(projects.updateProgress);
+        .put(projects.update);
+        // .patch(projects.updateProgress);
 
     app.route('/projects/:id/image')
         .get(projects.getImage)

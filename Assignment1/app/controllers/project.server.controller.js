@@ -81,11 +81,8 @@ exports.listOne = function (req, res) {
     let progress_list = [];
     let rewards_list = [];
     let rewards_lists = {};
-    let rewards_queue = {};
     let creator_list = [];
     let project_data_list = [];
-    let project_data_queue = {};
-    let project_detail_list = [];
     let project_detail_queue = {};
 
     Project.getProjectDetail(project_id, function (err, result){
@@ -131,11 +128,9 @@ exports.listOne = function (req, res) {
                             "id": item['creator_id'],
                         };
                         creator_list.push(creator_lists);
-                        rewards_queue = {creator_list};
-                        data[0]['project']["data"]['creator'] = creator_lists;
-                    }
 
-                    console.log(data[0]);
+                        data[0]['project']["data"]['creator'] = creator_list;
+                    }
                 }
 
                 Project.getRewardsPerProject(project_id, function (err, result) {
@@ -148,66 +143,54 @@ exports.listOne = function (req, res) {
                                 "amount": item['amount'],
                                 "description": item['description']
                             };
+                            rewards_list.push(rewards_lists);
+
                         }
+                        data[0]['project']["data"]['rewards'] = rewards_list;
 
                     }
+                    Project.updateProgress(project_id, function (err) {
+                        if (err) {
+                            res.sendStatus(400);
+                        }
 
+                        Project.getProgress(project_id, function (err, result) {
+                            if (err) {
+                                res.sendStatus(400);
+                            } else {
+                                for (let item of result) {
+                                    let progress_lists = {
+                                        "target":item['target'],
+                                        "currentPledged": item['current_pledged'],
+                                        "numberOfBackers": item['number_of_backers']
+                                    };
+                                    progress_list.push(progress_lists);
+                                }
+                                data[0]['progress'] = progress_list;
 
+                            }
+                            Project.getBacker(project_id, function (err, result) {
+                                if (err) {
+                                    res.sendStatus(400);
+                                    // res.json("Malformed request");
+                                } else {
+                                    for (let item of result) {
+                                        let back_list = {
+                                            "name":item['username'],
+                                            "amount":item['amount']
+                                        };
+                                        backer_list.push(back_list) ;
+                                    }
+                                    data[0]['backer'] = backer_list;
+                                    res.json(data[0]);
+                                }
+                            });
+                        });
+                    });
                 });
             });
         });
     });
-
-    Project.getBacker(project_id, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            // res.json("Malformed request");
-        } else {
-            for (let item of result) {
-                let back_list = {
-                    "name":item['username'],
-                    "amount":item['amount']
-                };
-                backer_list.push(back_list) ;
-            }
-            let backer_queue = {"backers": backer_list};
-            res.json(backer_queue);
-        }
-
-        Project.updateProgress(project_id, function (err, result) {
-            if (err) {
-                res.sendStatus(400);
-            }
-            console.log("pass updateProgress");
-            Project.getProgress(project_id, function (err, result) {
-                if (err) {
-                    res.sendStatus(400);
-                } else {
-                    for (let item of result) {
-                        let progress_lists = {
-                            "target":item['target'],
-                            "currentPledged": item['current_pledged'],
-                            "numberOfBackers": item['number_of_backers']
-                        };
-                        progress_list.push(progress_lists);
-                    }
-                    console.log("pass getProgress");
-                }
-
-            });
-        });
-    });
-
-
-
-    //
-
-    //
-
-    //
-
-    //
-
 };
 
 exports.update = function(req, res){

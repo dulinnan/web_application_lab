@@ -8,8 +8,6 @@ exports.getAllProjects = function(start, count, done){
         '`project_data`.`image_uri` FROM `mysql`.`project_data` LIMIT ?,?;';
     let values = [start, start+count];
     db.get().query(getAllProjects, values, function(err, rows) {
-        console.log({"err":err});
-        console.log({"rows":rows});
         if(err) return done({"ERROR":"Error selecting"});
         return done(null, rows);
     })
@@ -20,6 +18,7 @@ exports.getCreatorName = function(project_id, done){
         'JOIN `public_user`.`username` ON `public_user`.`id` = `creator`.`creator_id` WHERE `creator`.`project_id` = ?';
     db.get().query(selectCreatorName, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
+
         return done(rows);
     })
 };
@@ -44,8 +43,8 @@ exports.getRewardsPerProject = function (project_id, done) {
 };
 
 exports.getProjectDetail = function (project_id, done) {
-    const selectProjectDetail = '        // .put(projects.update);
-        // .patch(projects.updateProgress);';
+    const selectProjectDetail = 'SELECT `project`.`project_id`, `project`.`creation_date` FROM `mysql`.`project` ' +
+        'WHERE  `project`.`project_id` =?';
     db.get().query(selectProjectDetail, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
         return done(null, rows);
@@ -69,6 +68,7 @@ exports.getBacker = function (project_id, done) {
         'AND `pledge`.`anonymous` = 0;';
     db.get().query(selectBacker, project_id, function (err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
+
         return done(null, rows);
     })
 };
