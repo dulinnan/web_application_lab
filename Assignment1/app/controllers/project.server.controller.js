@@ -3,8 +3,8 @@
  */
 const Project = require('../models/project.server.model');
 exports.listAll = function(req, res){
-    let startIndex = req.query.startIndex;
-    let integer = req.query.integer;
+    let startIndex = parseInt(req.query.startIndex);
+    let integer = parseInt(req.query.integer);
     Project.getAllProjects(startIndex,integer, function (result) {
         res.sendStatus(200);
         res.json(result);
