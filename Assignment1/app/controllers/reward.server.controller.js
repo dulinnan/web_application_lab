@@ -4,14 +4,11 @@
 const Reward = require('../models/reward.server.model');
 exports.list = function(req, res){
     let id = req.params.id;
-    console.log({"ID":id});
     Reward.getAll(id, function (err, result) {
         if (err) {
-            res.sendStatus(404);
+            res.status(404).send("ERROR - NOT FOUND");
         } else {
             res.json(result);
-            // res.sendStatus(200);
-
         }
     })
 };
@@ -27,30 +24,27 @@ exports.update = function(req, res){
     let values = [
         [user_id, amount, description, id]
     ];
-    Reward.checkIfIDExists(id, function (err) {
-        if (err) {
-            res.sendStatus(401);
-            res.json({"Unauthorized":"create account to update project"});
-        }
-    });
-    Reward.getProjectPerBacker(id, function (err, result) {
-        if (err) {
-            res.sendStatus(404);
-            res.json({"ERROR":"NOT FOUND"});
-        } else {
-            if (!id in result) {
-                res.sendStatus(403);
-                res.json({"Forbidden": "unable to update a project you do not own"});
+    Reward.checkIfIDExists(id, function (err, result) {
+        if (err) res.send(err);
+        else
+        {
+            if (result.length === 0) {
+                res.status(404).send("ERROR - NOT FOUND");
+            } else{
+                Reward.getProjectPerBacker(user_id, id,function (err, result) {
+                    if (result.length !== 0) {
+                        res.status(403).send("Forbidden- unable to update a project you do not own");
+                    } else {
+                        Reward.alter(values, function (err, result) {
+                            if (err) {
+                                res.status(400).send("Malformed request");
+                            } else {
+                                res.json(result);
+                            }
+                        });
+                    }
+                });
             }
-        }
-    });
-    Reward.alter(values, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
-        } else {
-            res.sendStatus(201);
-            res.json(result);
         }
     });
 };

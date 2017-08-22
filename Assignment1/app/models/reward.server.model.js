@@ -18,16 +18,16 @@ exports.alter = function(user_id, pledge_amount, description, project_id, done){
     let values = [pledge_amount, description, project_id, user_id];
     db.get().query(putRewards, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
-exports.getProjectPerBacker = function (user_id, done) {
-    const selectProjectByUserif = 'SELECT `creator`.`project_id` FROM `mysql`.`creator` ' +
-        'WHERE `creator`.`creator_id` = ?';
-    db.get().query(selectProjectByUserif, user_id, function (err, result) {
+exports.getProjectPerBacker = function (user_id, project_id, done) {
+    const selectProjectByUserif = 'SELECT * FROM `mysql`.`creator` ' +
+        'WHERE `creator`.`creator_id` = ? AND `creator`.`project_id` = ?';
+    db.get().query(selectProjectByUserif, user_id, project_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
@@ -35,6 +35,6 @@ exports.checkIfIDExists = function (user_id, done) {
     const selectUserID = 'SELECT 1 ` FROM `mysql`.`Users` WHERE `Users`.`id = ?';
     db.get().query(selectUserID, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };

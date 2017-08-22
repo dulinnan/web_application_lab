@@ -272,7 +272,6 @@ exports.insertPledge = function (req, res) {
             res.status(403).send("Forbidden - cannot pledge to own project - this is fraud!");
         } else {
             Project.postPledge(amount,anonymous,project_id, user_id, function (err, result) {
-                console.log({"ERR": err});
                 if (err) {
                     res.status(400).send("Bad user, project, or pledge details");
                 } else {

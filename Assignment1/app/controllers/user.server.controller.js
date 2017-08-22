@@ -4,7 +4,6 @@
 const User = require('../models/user.server.model');
 
 exports.list = function(req, res){
-
     let id = req.params.id;
     User.getAllUsers(id, function (err, result) {
 
@@ -29,29 +28,18 @@ exports.update = function(req, res){
     let location = user_data['location'].toString();
     let email = user_data['email'].toString();
     let password = user_data['password'].toString();
-    let values = [
-        [id, username, location, email]
-    ];
 
-    if (id != user_id) {
-        res.sendStatus(403);
-        res.json({"Forbidden":"account not owned"});
-    }
-
-    User.checkIfIDExists(id, function (err) {
-        if (err) {
-            res.sendStatus(404);
-            res.json({"ERROR":"User not found"});
-        }
-    });
-
-    User.alter(values, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
+    User.checkIfIDExists(id, function (err, result) {
+        if (result.length === 0) {
+            res.sendStatus(404).send("ERROR - User not found");
         } else {
-            res.sendStatus(201);
-            res.json(result);
+            User.alter(id, username, location, email, function (err, result) {
+                if (err) {
+                    res.status(400).send("Malformed request");
+                } else {
+                    res.json(result);
+                }
+            });
         }
     });
 };
@@ -67,37 +55,33 @@ exports.create = function(req, res){
     let location = user_data['location'].toString();
     let email = user_data['email'].toString();
     let password = user_data['password'].toString();
-    // let values = [
-    //     [id, username, location, email]
-    // ];
-    User.checkIfUsernameDuplicate(username, function (err) {
-        if (!err) {
-            res.sendStatus(400);
-            res.json({"ERROR":"Username already exists!"});
+
+    User.checkIfUsernameDuplicate(username, function (err, result) {
+        console.log({"RESULT": result});
+        if (result.length != 0) {
+            res.status(400).send("ERROR - Username already exists!");
         } else {
-            User.insert(function (err, result) {
-                if (err) {
-                    res.sendStatus(400);
-                    res.json("Malformed request");
+            User.insertUsers(password, function (err, result) {
+                if(err){
+                    res.sendStatus(400);;
                 } else {
-                    res.sendStatus(201);
-                    res.json(result);
+                    let insertId = result['insertId'];
+                    User.insert(insertId, username, location, email, function (err, result) {
+                        if (err) {
+                            res.status(400).send("Malformed request");
+                        } else {
+                            res.json(result);
+                        }
+                    });
                 }
-            });
+            })
         }
     })
 };
 
-// exports.delete = function(req, res){
-//     let id = req.params.id;
-//     TODO
-// };
-
 exports.login = function(req, res){
     let username = req.body.username;
     let password = req.body.password;
-
-
 };
 
 exports.logout = function(req, res){

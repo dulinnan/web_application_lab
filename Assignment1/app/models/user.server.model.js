@@ -13,30 +13,23 @@ exports.getAllUsers = function(user_id, done){
     })
 };
 
-exports.insert = function(password, username, location, email, done){
-    let insertId = 0;
+exports.insertUsers = function (password, done) {
     const insertUser = 'INSERT INTO `mysql`.`Users` (`password`) VALUES (?);';
-    let values1 = [password];
-    const returnRecentID = 'SELECT LAST_INSERT_ID();';
-
-    db.get().query(insertUser, values1, function (err, next) {
+    db.get().query(insertUser, password, function (err, result) {
         if (err) return done(err);
-        next()
+        return done(null, result);
     });
+};
 
-    db.get().query(returnRecentID, function (err, result, next) {
-        if (err) return done(err);
-        insertId = result;
-        next()
-    });
 
+exports.insert = function(project_id, username, location, email, done){
     const insetPublicUser = 'INSERT INTO `mysql`.`public_user` (`id`, `username`, `location`,`email`) ' +
         'VALUES (?,?,?,?)';
-    let values2 = [insertId, username, location, email];
+    let values2 = [project_id, username, location, email];
 
     db.get().query(insetPublicUser, values2, function (err, result) {
         if (err) return done(err);
-        done(result);
+        return done(null, result);
     });
 };
 
@@ -76,17 +69,17 @@ exports.logout = function (user_id, done) {
 };
 
 exports.checkIfIDExists = function (user_id, done) {
-    const selectUserID = 'SELECT 1 ` FROM `mysql`.`Users` WHERE `Users`.`id = ?';
+    const selectUserID = 'SELECT * ` FROM `mysql`.`Users` WHERE `Users`.`id = ?';
     db.get().query(selectUserID, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
 exports.checkIfUsernameDuplicate = function (username, done) {
-    const selectUserUsername = 'SELECT 1 ` FROM `mysql`.`public_user` WHERE `public_user`.`username = ?';
-    db.get().query(selectUserUsername, username, function (err, result) {
+    const selectUserUsername = 'SELECT * FROM `mysql`.`public_user` WHERE `public_user`.`username` = ?';
+    db.get().query(selectUserUsername, [username], function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
