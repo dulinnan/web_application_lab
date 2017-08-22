@@ -4,7 +4,7 @@
 const db = require('./config/db'),
     express = require('./config/express');
 const dbBuild = require('./config/dbBuild');
-
+let user_id = 0;
 const app = express();
 // Connect to MySQL on start
 db.connect(function(err) {

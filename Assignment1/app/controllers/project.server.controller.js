@@ -2,6 +2,7 @@
  * Created by ldu32 on 19/08/17.
  */
 const Project = require('../models/project.server.model');
+
 exports.listAll = function(req, res){
     let startIndex = parseInt(req.query.startIndex);
     let count = parseInt(req.query.count);
@@ -27,6 +28,7 @@ exports.create = function(req, res){
         "rewards_amount": req.body.rewards[0].amount,
         "rewards_description": req.body.rewards[0].description
     };
+
     let title = project_data['title'].toString();
     let subtitle = project_data['subtitle'].toString();
     let description = project_data['description'].toString();
@@ -38,30 +40,25 @@ exports.create = function(req, res){
     let rewards_description = project_data['rewards_description'].toString();
 
     let project_id = 0;
-    Project.postProject(function (result) {
-        project_id = result;
-        let valuesProjectData = [
-            [project_id, title, subtitle, description, imageUri, target]
-        ];
-        let valuesReward = [
-            [rewards_amount, rewards_description, project_id]
-        ];
-        Project.postProjectData(valuesProjectData, function (err) {
+    Project.postProject(function (err,result) {
+        if (err) {
+            res.sendStatus(400);
+        }
+        project_id = result['insertId'];
+        console.log({"PROJECT ID": project_id});
+        Project.postProjectData(project_id, title, subtitle, description, imageUri, target, function (err, result) {
             if (err) {
                 res.sendStatus(400);
-                res.json("Malformed request");
             }
-            Project.postReward(valuesReward, function (err) {
+            Project.postReward(rewards_amount, rewards_description, project_id, function (err) {
                 if (err) {
                     res.sendStatus(400);
-                    res.json("Malformed request");
                 }
                 Project.postCreator(project_id, creator_id, function (err, result) {
                     if (err) {
                         res.sendStatus(400);
                         res.json("Malformed request");
                     } else {
-                        // res.sendStatus(201);
                         res.json(result);
                     }
                 });
@@ -69,31 +66,6 @@ exports.create = function(req, res){
         });
     });
 };
-
-// exports.create = function(req, res){
-//     let project_data = {
-//         "title": req.body.title,
-//         "subtitle": req.body.subtitle,
-//         "description": req.body.description,
-//         "imageUri": req.body.imageUri,
-//         "target": req.body.target,
-//         "creator_id": req.body.creators[0].id,
-//         "rewards_id": req.body.rewards[0].id,
-//         "rewards_amount": req.body.rewards[0].amount,
-//         "rewards_description": req.body.rewards[0].description
-//     };
-//     let title = project_data['title'].toString();
-//     let subtitle = project_data['subtitle'].toString();
-//     let description = project_data['description'].toString();
-//     let imageUri = project_data['imageUri'].toString();
-//     let target = project_data['target'].toString();
-//     let creator_id = project_data['creator_id'].toString();
-//     let rewards_id = project_data['rewards_id'].toString();
-//     let rewards_amount = project_data['rewards_amount'].toString();
-//     let rewards_description = project_data['rewards_description'].toString();
-//     console.log(rewards_id);
-// };
-
 
 exports.listOne = function (req, res) {
     let project_id = req.params.id;
@@ -217,15 +189,27 @@ exports.listOne = function (req, res) {
 exports.update = function(req, res){
     let project_id = req.params.id;
     let project_data = {"open": req.body.open};
-    let open_status = project_data['open'].toString;
-
-    Project.alterClose(project_id, open_status, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
+    let open_target = parseInt(project_data['open']);
+    let user_id = 111;
+    Project.isOwner(project_id, user_id, function (err, result) {
+        if (err || result.length == 0) {
+            res.status(403).send("Forbidden - unable to update a project you do not own");
+            // res.json("Malformed request");
         } else {
-            res.sendStatus(201);
-            res.json(result);
+            Project.alterClose(project_id, open_target, function (err, result) {
+                if (err) {
+                    res.sendStatus(400);
+                    // res.json("Malformed request");
+                } else {
+                    let rows_matched = result['message'][15];
+                    if (rows_matched == 0) {
+                        res.sendStatus(404);
+                    }
+                    else {
+                        res.json(result);
+                    }
+                }
+            });
         }
     })
 };
@@ -235,9 +219,9 @@ exports.getImage = function (req, res) {
     Project.getImage(project_id, function (err, result) {
         if (err) {
             res.sendStatus(400);
-            res.json("Malformed request");
+            // res.json("Malformed request");
         } else {
-            res.sendStatus(201);
+            // res.sendStatus(201);
             res.json(result);
         }
     });
@@ -247,26 +231,28 @@ exports.updateImage = function (req, res) {
     let project_id = req.params.id;
     let project_image = {"image": req.body.image};
     let image = project_image['image'];
+    let user_id;
 
-    Project.getProjectCreator(project_id, function (err, result) {
-        if (err) {
-            res.sendStatus(400);
-            res.json("Malformed request");
+    Project.isOwner(project_id, user_id, function (err, result) {
+        if (err || result.length == 0) {
+            res.status(403).send("Forbidden - unable to update a project you do not own");
+            // res.json("Malformed request");
         } else {
-            if (!user_id in result) {
-                res.sendStatus(403);
-                res.json({"Forbidden":"unable to update a project you do not own"});
-            }
+            Project.postImage(project_id, function (err, result) {
+                if (err) {
+                    res.sendStatus(400);
+                    // res.json("Malformed request");
+                } else {
+                    let rows_matched = result['message'][15];
+                    if (rows_matched == 0) {
+                        res.sendStatus(404);
+                    }
+                    else {
+                        res.json(result);
+                    }
+                }
+            });
         }
-        Project.postImage(project_id, function (err, result) {
-            if (err) {
-                res.sendStatus(404);
-                res.json("NOT FOUND");
-            } else {
-                res.sendStatus(201);
-                res.json(result);
-            }
-        });
     });
 };
 
@@ -281,22 +267,20 @@ exports.insertPledge = function (req, res) {
     let amount = pledge_data['amount'].toString();
     let anonymous = pledge_data['anonymous'].toString();
 
-    Project.getBackID(project_id, function (err, result) {
-        if (err) {
-            // res.sendStatus(404);
-            res.json("NOT FOUND");
+    Project.isOwner(project_id, user_id, function (err, result) {
+        if (result.length !== 0) {
+            res.status(403).send("Forbidden - cannot pledge to own project - this is fraud!");
         } else {
-            if (user_id in result) {
-                // res.sendStatus(403);
-                res.json("Forbidden - cannot pledge to own project - this is fraud!");
-            }
             Project.postPledge(amount,anonymous,project_id, user_id, function (err, result) {
+                console.log({"ERR": err});
                 if (err) {
-                    // res.sendStatus(400);
-                    res.json("Bad user, project, or pledge details");
+                    res.status(400).send("Bad user, project, or pledge details");
                 } else {
-                    Project.updateProgress(project_id);
-                    // res.sendStatus(200);
+                    Project.updateProgress(project_id, function (err, result){
+                        if (err) {
+                            res.status(404).send("NOT FOUND");
+                        }
+                    });
                     res.json(result);
                 }
             })
@@ -304,44 +288,30 @@ exports.insertPledge = function (req, res) {
     });
 };
 
-
 exports.delete = function(req, res){
     let delete_id = req.params.id;
 
     Project.getCurrentIDDetail(delete_id, function (err, result) {
-        if (err) {
-            res.sendStatus(404);
-            res.json("User not found");
-        }
-        Project.getCurrentCreated(delete_id, function (err, result) {
-            if (!err){
-                Project.updateOpenStatus(delete_id);
-            }
-
-            Project.deleteUserOnly(delete_id, function (err, result) {
-                if (err) {
-                    res.sendStatus(400);
-                    res.json("User not found");
-                } else {
-                    res.sendStatus(200);
-                    res.json("User deleted");
-                    res.json(result);
-                }
-            });
-        });
-    });
-};
-
-exports.updateProgress = function (req, res) {
-    let project_id = req.params.id;
-    Project.updateProgress(project_id, function (err, result) {
-
-        console.log({"ERR":err});
-        console.log({"result":result});
-        if (err) {
-            res.sendStatus(400);
+        if (result.length === 0) {
+            res.status(404).send("User not found");
         } else {
-            res.json(result);
+            Project.getCurrentCreated(delete_id, function (err, result) {
+                if (result.length !== 0){
+                    Project.updateOpenStatus(delete_id, function (err, result) {
+                        if (err) {
+                            res.status(404).send("cant set open");
+                        }
+                    });
+                }
+                Project.deleteUserOnly(delete_id, function (err, result) {
+                    if (err) {
+                        res.status(404).send("User not found");
+                    } else {
+                        // res.status(200).send("User deleted");
+                        res.json(result);
+                    }
+                });
+            });
         }
     });
 };

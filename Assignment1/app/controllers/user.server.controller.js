@@ -88,10 +88,10 @@ exports.create = function(req, res){
     })
 };
 
-exports.delete = function(req, res){
-    let id = req.params.id;
-    TODO
-};
+// exports.delete = function(req, res){
+//     let id = req.params.id;
+//     TODO
+// };
 
 exports.login = function(req, res){
     let username = req.body.username;

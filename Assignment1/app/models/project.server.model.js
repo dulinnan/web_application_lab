@@ -78,7 +78,7 @@ exports.getImage = function (project_id, done) {
         'WHERE `project_data`.`project_id` = ?';
     db.get().query(selectImageuri, project_id, function (err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-        return done(rows);
+        return done(null, rows);
     })
 };
 
@@ -92,18 +92,22 @@ exports.postImage = function (project_id, image_uri, done) {
 };
 
 exports.alterClose = function (project_id, open_status, done) {
-    let open_target = 0;
-    if (open_status === 0) {
-        open_target = 1;
-    } else {
-        open_target = 0;
-    }
-    let values = [open_target, project_id];
     const alterProjectOpen = 'UPDATE `mysql`.`project` SET `open` = ? WHERE `project_id` = ?;';
+    let values = [open_status, project_id];
     db.get().query(alterProjectOpen, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
+};
+
+exports.updateOpenStatus = function (user_id, done) {
+    const updateOpen = 'UPDATE `mysql`.`project` JOIN `mysql`.`creator` ' +
+        'ON `project`.`project_id` = `creator`.`project_id` SET `project`.`open` = 0 ' +
+        'WHERE `creator`.`creator_id` = ?';
+    db.get().query(updateOpen, user_id, function (err, result) {
+        if (err) return done(err);
+        done(null, result);
+    })
 };
 
 exports.postPledge = function (amount, anonymous, project_id, backer_id, done) {
@@ -132,21 +136,15 @@ exports.updateProgress = function (project_id, done) {
 
 exports.postProject = function (done) {
     const insertProject = 'INSERT INTO project VALUE();';
-    const returnRecentID = 'SELECT LAST_INSERT_ID();';
     db.get().query(insertProject, function (err, result) {
-        if (err) return done(err);
-
-    });
-    db.get().query(returnRecentID, function (err, result) {
         if (err) return done(err);
         done(null, result);
     });
 };
 
 exports.postProjectData = function (project_id, title, subtitle, description, imageUri, target, done) {
-    const insertProjectData = 'INSERT INTO `mysql`.`project_data` (`title`, `subtitle`, `description`, `image_uri`,' +
-        '`target`) VALUES (?, ?, ?, ?, ?) WHERE `project_id` =?';
-    let values = [title, subtitle, description, imageUri, target, project_id];
+    const insertProjectData = 'INSERT INTO `mysql`.`project_data` VALUES (?, ?, ?, ?, ?, ?);';
+    let values = [project_id, title, subtitle, description, imageUri, target];
     db.get().query(insertProjectData, values, function (err, result) {
         if (err) return done(err);
         done(null, result);
@@ -171,28 +169,12 @@ exports.postCreator = function (project_id, creator_id, done) {
     });
 };
 
-exports.getProjectCreator = function (project_id, done) {
-    const selectCreator = 'SELECT `creator`.`creator_id` FROM `mysql`.`creator` WHERE `creator`.`project_id` = ?;';
-    db.get().query(selectCreator, project_id, function (err, result) {
-        if (err) return done(err);
-        done(null, result);
-    });
-};
-
-exports.getBackID = function (project_id, done) {
-    const selectBackID = 'SELECT `backer`.`backer_id` FROM `mysql`.`backer` WHERE `backer`.`project_id` = ?;';
-    db.get().query(selectBackID, project_id, function (err, result) {
-        if (err) return done(err);
-        done(result);
-    });
-};
-
 exports.getCurrentCreated = function (user_id, done) {
     const countCurrentCreated = 'SELECT 1 FROM `mysql`.`creator` ' +
         'WHERE `creator`.`creator_id` = ?';
     db.get().query(countCurrentCreated, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     })
 };
 
@@ -200,7 +182,7 @@ exports.getCurrentIDDetail = function (user_id, done) {
     const checkCurrentID = 'SELECT 1 FROM `mysql`.`Users` WHERE `Users`.`id` = ?';
     db.get().query(checkCurrentID, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     })
 };
 
@@ -208,15 +190,16 @@ exports.deleteUserOnly = function (user_id, done) {
     const deleteUserOnly = 'DELETE FROM `mysql`.`Users` WHERE `Users`.`id` = ?;'
     db.get().query(deleteUserOnly, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     })
 };
 
-exports.updateOpenStatus = function (user_id, done) {
-    const updateOpen = 'UPDATE `mysql.`project` p JOIN `mysql.`creator` c SET p.`open` = 0 ' +
-        'WHERE c.`creator_id` = ?';
-    db.get().query(updateOpen, user_id, function (err, result) {
-        if (err) return done(err);
-        done(result);
+exports.isOwner= function (project_id, user_id, done) {
+    const checkIfOwner = 'SELECT 1 from `mysql`.`creator` WHERE `creator`.`project_id` = ? ' +
+        'AND `creator`.`creator_id` = ?;';
+    let values = [project_id, user_id,];
+    db.get().query(checkIfOwner, values, function (err,result) {
+        if(err) return done(err);
+        return done(null, result);
     })
 };
