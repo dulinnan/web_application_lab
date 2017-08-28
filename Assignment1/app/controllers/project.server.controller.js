@@ -2,6 +2,7 @@
  * Created by ldu32 on 19/08/17.
  */
 const Project = require('../models/project.server.model');
+const jwt_decode = require('jwt-decode');
 
 exports.listAll = function(req, res){
     let startIndex = parseInt(req.query.startIndex);
@@ -17,54 +18,61 @@ exports.listAll = function(req, res){
 };
 
 exports.create = function(req, res){
-    let project_data = {
-        "title": req.body.title,
-        "subtitle": req.body.subtitle,
-        "description": req.body.description,
-        "imageUri": req.body.imageUri,
-        "target": req.body.target,
-        "creator_id": req.body.creators[0].id,
-        "rewards_id": req.body.rewards[0].id,
-        "rewards_amount": req.body.rewards[0].amount,
-        "rewards_description": req.body.rewards[0].description
-    };
+    let reqToken = req.get('X-Authorization');
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - create account to create project");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let reqID = decoded['userid'];
+        let project_data = {
+            "title": req.body.title,
+            "subtitle": req.body.subtitle,
+            "description": req.body.description,
+            "imageUri": req.body.imageUri,
+            "target": req.body.target,
+            "creator_id": req.body.creators[0].id,
+            "rewards_id": req.body.rewards[0].id,
+            "rewards_amount": req.body.rewards[0].amount,
+            "rewards_description": req.body.rewards[0].description
+        };
 
-    let title = project_data['title'].toString();
-    let subtitle = project_data['subtitle'].toString();
-    let description = project_data['description'].toString();
-    let imageUri = project_data['imageUri'].toString();
-    let target = project_data['target'].toString();
-    let creator_id = project_data['creator_id'].toString();
-    let rewards_id = project_data['rewards_id'].toString();
-    let rewards_amount = project_data['rewards_amount'].toString();
-    let rewards_description = project_data['rewards_description'].toString();
+        let title = project_data['title'].toString();
+        let subtitle = project_data['subtitle'].toString();
+        let description = project_data['description'].toString();
+        let imageUri = project_data['imageUri'].toString();
+        let target = project_data['target'].toString();
+        let creator_id = project_data['creator_id'].toString();
+        let rewards_id = project_data['rewards_id'].toString();
+        let rewards_amount = project_data['rewards_amount'].toString();
+        let rewards_description = project_data['rewards_description'].toString();
 
-    let project_id = 0;
-    Project.postProject(function (err,result) {
-        if (err) {
-            res.sendStatus(400);
-        }
-        project_id = result['insertId'];
-        console.log({"PROJECT ID": project_id});
-        Project.postProjectData(project_id, title, subtitle, description, imageUri, target, function (err, result) {
+        let project_id = 0;
+        Project.postProject(function (err, result) {
             if (err) {
                 res.sendStatus(400);
             }
-            Project.postReward(rewards_amount, rewards_description, project_id, function (err) {
+            project_id = result['insertId'];
+            console.log({"PROJECT ID": project_id});
+            Project.postProjectData(project_id, title, subtitle, description, imageUri, target, function (err, result) {
                 if (err) {
                     res.sendStatus(400);
                 }
-                Project.postCreator(project_id, creator_id, function (err, result) {
+                Project.postReward(rewards_amount, rewards_description, project_id, function (err) {
                     if (err) {
                         res.sendStatus(400);
-                        res.json("Malformed request");
-                    } else {
-                        res.json(result);
                     }
+                    Project.postCreator(project_id, creator_id, function (err, result) {
+                        if (err) {
+                            res.sendStatus(400);
+                            res.json("Malformed request");
+                        } else {
+                            res.json(result);
+                        }
+                    });
                 });
             });
         });
-    });
+    }
 };
 
 exports.listOne = function (req, res) {
@@ -187,31 +195,37 @@ exports.listOne = function (req, res) {
 };
 
 exports.update = function(req, res){
-    let project_id = req.params.id;
-    let project_data = {"open": req.body.open};
-    let open_target = parseInt(project_data['open']);
-    let user_id = 111;
-    Project.isOwner(project_id, user_id, function (err, result) {
-        if (err || result.length == 0) {
-            res.status(403).send("Forbidden - unable to update a project you do not own");
-            // res.json("Malformed request");
-        } else {
-            Project.alterClose(project_id, open_target, function (err, result) {
-                if (err) {
-                    res.sendStatus(400);
-                    // res.json("Malformed request");
-                } else {
-                    let rows_matched = result['message'][15];
-                    if (rows_matched == 0) {
-                        res.sendStatus(404);
+    let reqToken = req.get('X-Authorization');
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - create account to update project");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let user_id = decoded['userid'];
+        let project_id = req.params.id;
+        let project_data = {"open": req.body.open};
+        let open_target = parseInt(project_data['open']);
+        Project.isOwner(project_id, user_id, function (err, result) {
+            if (err || result.length === null) {
+                res.status(403).send("Forbidden - unable to update a project you do not own");
+                // res.json("Malformed request");
+            } else {
+                Project.alterClose(project_id, open_target, function (err, result) {
+                    if (err) {
+                        res.sendStatus(400);
+                        // res.json("Malformed request");
+                    } else {
+                        let rows_matched = result['message'][15];
+                        if (rows_matched === 0) {
+                            res.sendStatus(404);
+                        }
+                        else {
+                            res.status(201).send(result);
+                        }
                     }
-                    else {
-                        res.json(result);
-                    }
-                }
-            });
-        }
-    })
+                });
+            }
+        })
+    }
 };
 
 exports.getImage = function (req, res) {
@@ -228,89 +242,113 @@ exports.getImage = function (req, res) {
 };
 
 exports.updateImage = function (req, res) {
-    let project_id = req.params.id;
-    let project_image = {"image": req.body.image};
-    let image = project_image['image'];
-    let user_id;
+    let reqToken = req.get('X-Authorization');
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - create account to update project");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let user_id = decoded['userid'];
+        let project_id = req.params.id;
+        let project_image = {"image": req.body.image};
+        let image = project_image['image'];
 
-    Project.isOwner(project_id, user_id, function (err, result) {
-        if (err || result.length == 0) {
-            res.status(403).send("Forbidden - unable to update a project you do not own");
-            // res.json("Malformed request");
-        } else {
-            Project.postImage(project_id, function (err, result) {
-                if (err) {
-                    res.sendStatus(400);
-                    // res.json("Malformed request");
-                } else {
-                    let rows_matched = result['message'][15];
-                    if (rows_matched == 0) {
-                        res.sendStatus(404);
+        Project.isOwner(project_id, user_id, function (err, result) {
+            if (err || result.length === null) {
+                res.status(403).send("Forbidden - unable to update a project you do not own");
+                // res.json("Malformed request");
+            } else {
+                Project.postImage(project_id, function (err, result) {
+                    if (err) {
+                        res.sendStatus(400);
+                        // res.json("Malformed request");
+                    } else {
+                        let rows_matched = result['message'][15];
+                        if (rows_matched == 0) {
+                            res.sendStatus(404);
+                        }
+                        else {
+                            res.json(result);
+                        }
                     }
-                    else {
-                        res.json(result);
-                    }
-                }
-            });
-        }
-    });
+                });
+            }
+        });
+    }
 };
 
 exports.insertPledge = function (req, res) {
-    let project_id = req.params.id;
-    let pledge_data = {
-        "user_id": req.body.id,
-        "amount": req.body.amount,
-        "anonymous": req.body.anonymous};
+    let reqToken = req.get('X-Authorization');
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - create account to update project");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let reqID = decoded['userid'];
+        let project_id = req.params.id;
+        let pledge_data = {
+            "user_id": req.body.id,
+            "amount": req.body.amount,
+            "anonymous": req.body.anonymous
+        };
 
-    let user_id = pledge_data['user_id'].toString();
-    let amount = pledge_data['amount'].toString();
-    let anonymous = pledge_data['anonymous'].toString();
+        let user_id = pledge_data['user_id'].toString();
+        let amount = pledge_data['amount'].toString();
+        let anonymous = pledge_data['anonymous'].toString();
 
-    Project.isOwner(project_id, user_id, function (err, result) {
-        if (result.length !== 0) {
-            res.status(403).send("Forbidden - cannot pledge to own project - this is fraud!");
-        } else {
-            Project.postPledge(amount,anonymous,project_id, user_id, function (err, result) {
-                if (err) {
-                    res.status(400).send("Bad user, project, or pledge details");
-                } else {
-                    Project.updateProgress(project_id, function (err, result){
-                        if (err) {
-                            res.status(404).send("NOT FOUND");
-                        }
-                    });
-                    res.json(result);
-                }
-            })
-        }
-    });
+        Project.isOwner(project_id, user_id, function (err, result) {
+            if (result.length !== 0) {
+                res.status(403).send("Forbidden - cannot pledge to own project - this is fraud!");
+            } else {
+                Project.postPledge(amount, anonymous, project_id, user_id, function (err, result) {
+                    if (err) {
+                        res.status(400).send("Bad user, project, or pledge details");
+                    } else {
+                        Project.updateProgress(project_id, function (err, result) {
+                            if (err) {
+                                res.status(404).send("NOT FOUND");
+                            }
+                        });
+                        res.status(200).send(result);
+                    }
+                })
+            }
+        });
+    }
 };
 
 exports.delete = function(req, res){
-    let delete_id = req.params.id;
+    let reqToken = req.get('X-Authorization');
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - not logged in");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let reqID = decoded['userid'];
+        let delete_id = req.params.id;
 
-    Project.getCurrentIDDetail(delete_id, function (err, result) {
-        if (result.length === 0) {
-            res.status(404).send("User not found");
+        if (reqID !== delete_id) {
+            res.status(403).send("Forbidden - account not owned");
         } else {
-            Project.getCurrentCreated(delete_id, function (err, result) {
-                if (result.length !== 0){
-                    Project.updateOpenStatus(delete_id, function (err, result) {
-                        if (err) {
-                            res.status(404).send("cant set open");
+            Project.getCurrentIDDetail(delete_id, function (err, result) {
+                if (result.length === 0) {
+                    res.status(404).send("User not found");
+                } else {
+                    Project.getCurrentCreated(delete_id, function (err, result) {
+                        if (result.length !== 0) {
+                            Project.updateOpenStatus(delete_id, function (err, result) {
+                                if (err) {
+                                    res.status(404).send("cant set open");
+                                }
+                            });
                         }
+                        Project.deleteUserOnly(delete_id, function (err, result) {
+                            if (err) {
+                                res.status(404).send("User not found");
+                            } else {
+                                res.status(200).send("User deleted");
+                            }
+                        });
                     });
                 }
-                Project.deleteUserOnly(delete_id, function (err, result) {
-                    if (err) {
-                        res.status(404).send("User not found");
-                    } else {
-                        // res.status(200).send("User deleted");
-                        res.json(result);
-                    }
-                });
             });
         }
-    });
+    }
 };
