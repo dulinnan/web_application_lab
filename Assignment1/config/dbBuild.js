@@ -123,7 +123,8 @@ exports.createCreatorTable = function () {
 
 exports.createLoginResponse = function () {
     const loginResponseTable = 'CREATE TABLE IF NOT EXISTS `login_response` (`login_id` int(11) NOT NULL,' +
-        '`token` varchar(45) DEFAULT NULL,PRIMARY KEY (`login_id`),' +
+        '`token` varchar(45) DEFAULT NULL,' +
+        '`loginBoolean` tinyint(4) DEFAULT NULL,PRIMARY KEY (`login_id`),' +
         'CONSTRAINT `user_id_ref_login` FOREIGN KEY (`login_id`) ' +
         'REFERENCES `Users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ' +
         'ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT="each token assign to an user id";';

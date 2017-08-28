@@ -5,6 +5,7 @@ const mysql = require('mysql');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
+const uuidV4 = require('uuid/v4');
 app.use(bodyParser.json());
 const pool = mysql.createPool({
     connectionLimit: 100,

@@ -18,7 +18,6 @@ exports.getCreatorName = function(project_id, done){
         'JOIN `public_user`.`username` ON `public_user`.`id` = `creator`.`creator_id` WHERE `creator`.`project_id` = ?';
     db.get().query(selectCreatorName, project_id, function(err, rows) {
         if(err) return done({"ERROR":"Error selecting"});
-
         return done(rows);
     })
 };
