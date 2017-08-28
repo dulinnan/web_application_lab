@@ -2,6 +2,8 @@
  * Created by ldu32 on 19/08/17.
  */
 const Reward = require('../models/reward.server.model');
+const jwt_decode = require('jwt-decode');
+
 exports.list = function(req, res){
     let id = req.params.id;
     Reward.getAll(id, function (err, result) {
