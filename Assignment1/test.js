@@ -4,8 +4,8 @@
 const db = require('./config/db'),
     express = require('./config/express');
 const dbBuild = require('./config/dbBuild');
-let user_id = 0;
 const app = express();
+const process.env.PORT = 3000;
 // Connect to MySQL on start
 db.connect(function(err) {
     if (err) {
@@ -23,7 +23,7 @@ db.connect(function(err) {
         dbBuild.createCreatorTable();
         dbBuild.createLoginResponse();
 
-        app.listen(process.env.PORT, function() {
+        app.listen(3000, function() {
             console.log('Listening on port: ' + process.env.PORT);
         });
     }

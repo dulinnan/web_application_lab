@@ -147,7 +147,7 @@ exports.login = function(req, res){
 exports.logout = function(req, res){
     let reqToken = req.get('X-Authorization');
     if (reqToken === undefined) {
-        res.status(401).send("Unauthorized - already logged out");
+        res.status(401).send("Unauthorized - NO X-Authorization header");
     } else {
         let decoded = jwt_decode(reqToken);
         let reqID = decoded['userid'];
