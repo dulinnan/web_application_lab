@@ -20,31 +20,43 @@ exports.list = function(req, res){
 };
 
 exports.update = function(req, res){
-    let id = req.params.id;
-    let user_data = {
-        "username": req.body.user.username,
-        "location": req.body.user.location,
-        "email": req.body.user.email,
-        "password": req.body.password
-    };
-    let username = user_data['username'].toString();
-    let location = user_data['location'].toString();
-    let email = user_data['email'].toString();
-    let password = user_data['password'].toString();
+    let reqToken = req.get('X-Authorization');
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - not logged in");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let reqID = decoded['userid'];
 
-    User.checkIfIDExists(id, function (err, result) {
-        if (result.length === null) {
-            res.sendStatus(404).send("ERROR - User not found");
+        let id = req.params.id;
+        let user_data = {
+            "username": req.body.user.username,
+            "location": req.body.user.location,
+            "email": req.body.user.email,
+            "password": req.body.password
+        };
+        let username = user_data['username'].toString();
+        let location = user_data['location'].toString();
+        let email = user_data['email'].toString();
+        let password = user_data['password'].toString();
+
+        if (reqID !== id) {
+            res.sendStatus(403).send("Forbidden - account not owned");
         } else {
-            User.alter(id, username, location, email, function (err, result) {
-                if (err) {
-                    res.status(400).send("Malformed request");
+            User.checkIfIDExists(id, function (err, result) {
+                if (result.length === null) {
+                    res.sendStatus(404).send("ERROR - User not found");
                 } else {
-                    res.json(result);
+                    User.alter(id, username, location, email, function (err, result) {
+                        if (err) {
+                            res.status(400).send("Malformed request");
+                        } else {
+                            res.json(result);
+                        }
+                    });
                 }
             });
         }
-    });
+    }
 };
 
 exports.create = function(req, res){
@@ -134,25 +146,28 @@ exports.login = function(req, res){
 
 exports.logout = function(req, res){
     let reqToken = req.get('X-Authorization');
-    let decoded = jwt_decode(reqToken);
-    let reqID = decoded['userid'];
-
-    User.checkIfAlreadyLogout(reqID, function (err, result) {
-        let loginBoolean = result[0]['loginBoolean'];
-        if (result.length === null) {
-            res.status(401).send("Unauthorized - already logged out");
-        } else {
-            if (loginBoolean === 1) {
-                User.logout(reqID, function (err, result) {
-                    if (err) {
-                        res.status(401).send("Unauthorized - already logged out");
-                    } else {
-                        res.sendStatus(200);
-                    }
-                });
-            } else {
+    if (reqToken === undefined) {
+        res.status(401).send("Unauthorized - already logged out");
+    } else {
+        let decoded = jwt_decode(reqToken);
+        let reqID = decoded['userid'];
+        User.checkIfAlreadyLogout(reqID, function (err, result) {
+            let loginBoolean = result[0]['loginBoolean'];
+            if (result.length === null) {
                 res.status(401).send("Unauthorized - already logged out");
+            } else {
+                if (loginBoolean === 1) {
+                    User.logout(reqID, function (err, result) {
+                        if (err) {
+                            res.status(401).send("Unauthorized - already logged out");
+                        } else {
+                            res.sendStatus(200);
+                        }
+                    });
+                } else {
+                    res.status(401).send("Unauthorized - already logged out");
+                }
             }
-        }
-    })
+        })
+    }
 };
