@@ -77,10 +77,10 @@ exports.login = function (user_id, done) {
 };
 
 exports.logout = function (user_id, done) {
-    const deleteToken = 'DELETE FROM `mysql`.`login_response` WHERE `login_id`=?;';
+    const deleteToken = 'UPDATE `mysql`.`login_response` SET `loginBoolean` = 0 WHERE `login_id`=?;';
     db.get().query(deleteToken, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
@@ -95,6 +95,14 @@ exports.checkIfIDExists = function (user_id, done) {
 exports.checkIfUsernameDuplicate = function (username, done) {
     const selectUserUsername = 'SELECT id FROM `mysql`.`public_user` WHERE `public_user`.`username` = ?';
     db.get().query(selectUserUsername, username, function (err, result) {
+        if (err) return done(err);
+        done(null, result);
+    });
+};
+
+exports.checkIfAlreadyLogout = function (user_id, done) {
+    const selectLogBoolean = 'SELECT `loginBoolean` FROM `mysql`.`login_response` WHERE `login_id`=?';
+    db.get().query(selectLogBoolean, user_id, function (err, result) {
         if (err) return done(err);
         done(null, result);
     });

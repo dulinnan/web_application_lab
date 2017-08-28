@@ -6,15 +6,13 @@ const uuidV4 = require('uuid/v4');
 const nJwt = require('njwt');
 const jwt_decode = require('jwt-decode');
 
-
-
 exports.list = function(req, res){
     let id = req.params.id;
     User.getAllUsers(id, function (err, result) {
 
         // console.log(err);
         if (err) {
-            res.sendStatus(404);
+            res.send(404).send("User not found");
         } else {
             res.json(result);
         }
@@ -35,7 +33,7 @@ exports.update = function(req, res){
     let password = user_data['password'].toString();
 
     User.checkIfIDExists(id, function (err, result) {
-        if (result.length === 0) {
+        if (result.length === null) {
             res.sendStatus(404).send("ERROR - User not found");
         } else {
             User.alter(id, username, location, email, function (err, result) {
@@ -135,5 +133,26 @@ exports.login = function(req, res){
 };
 
 exports.logout = function(req, res){
-    return null;
+    let reqToken = req.get('X-Authorization');
+    let decoded = jwt_decode(reqToken);
+    let reqID = decoded['userid'];
+
+    User.checkIfAlreadyLogout(reqID, function (err, result) {
+        let loginBoolean = result[0]['loginBoolean'];
+        if (result.length === null) {
+            res.status(401).send("Unauthorized - already logged out");
+        } else {
+            if (loginBoolean === 1) {
+                User.logout(reqID, function (err, result) {
+                    if (err) {
+                        res.status(401).send("Unauthorized - already logged out");
+                    } else {
+                        res.sendStatus(200);
+                    }
+                });
+            } else {
+                res.status(401).send("Unauthorized - already logged out");
+            }
+        }
+    })
 };
