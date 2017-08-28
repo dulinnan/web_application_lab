@@ -39,7 +39,7 @@ exports.alter = function(user_id, user_name, location, email, done){
     let values = [username, location, email, user_id];
     db.get().query(updateUser, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
@@ -47,16 +47,32 @@ exports.remove = function(user_id, done){
     const removeUser = 'DELETE FROM `mysql`.`Users` WHERE `id` = ?;';
     db.get().query(removeUser, user_id, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
     });
 };
 
 exports.insertToken = function (user_id, token, done) {
-    const insertToken = 'INSERT INTO `mysql`.`login_response` VALUES (?, ?);';
+    const insertToken = 'INSERT INTO `mysql`.`login_response` (login_id, token) VALUES (?, ?);';
     let values = [user_id, token];
     db.get().query(insertToken, values, function (err, result) {
         if (err) return done(err);
-        done(result);
+        done(null, result);
+    });
+};
+
+exports.requestToken = function (user_id, done) {
+    const reqToken = 'SELECT `token` FROM `mysql`.`login_response` WHERE `login_response`.`login_id` = ?;';
+    db.get().query(reqToken, user_id, function (err, result) {
+        if (err) return done(err);
+        done(null, result);
+    });
+};
+
+exports.login = function (user_id, done) {
+    const updateLoginStatus = 'UPDATE `mysql`.`login_response` SET `loginBoolean` = 1 WHERE `login_id`=?';
+    db.get().query(updateLoginStatus, user_id, function (err, result) {
+        if (err) return done(err);
+        done(null, result);
     });
 };
 
@@ -77,8 +93,8 @@ exports.checkIfIDExists = function (user_id, done) {
 };
 
 exports.checkIfUsernameDuplicate = function (username, done) {
-    const selectUserUsername = 'SELECT * FROM `mysql`.`public_user` WHERE `public_user`.`username` = ?';
-    db.get().query(selectUserUsername, [username], function (err, result) {
+    const selectUserUsername = 'SELECT id FROM `mysql`.`public_user` WHERE `public_user`.`username` = ?';
+    db.get().query(selectUserUsername, username, function (err, result) {
         if (err) return done(err);
         done(null, result);
     });

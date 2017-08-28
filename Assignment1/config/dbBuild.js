@@ -123,7 +123,7 @@ exports.createCreatorTable = function () {
 
 exports.createLoginResponse = function () {
     const loginResponseTable = 'CREATE TABLE IF NOT EXISTS `login_response` (`login_id` int(11) NOT NULL,' +
-        '`token` varchar(45) DEFAULT NULL,' +
+        '`token` varchar(500) DEFAULT NULL,' +
         '`loginBoolean` tinyint(4) DEFAULT NULL,PRIMARY KEY (`login_id`),' +
         'CONSTRAINT `user_id_ref_login` FOREIGN KEY (`login_id`) ' +
         'REFERENCES `Users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ' +

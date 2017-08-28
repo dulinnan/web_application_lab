@@ -3,6 +3,10 @@
  */
 const User = require('../models/user.server.model');
 const uuidV4 = require('uuid/v4');
+const nJwt = require('njwt');
+const jwt_decode = require('jwt-decode');
+
+
 
 exports.list = function(req, res){
     let id = req.params.id;
@@ -47,9 +51,6 @@ exports.update = function(req, res){
 
 exports.create = function(req, res){
 
-    // const secretKey = "1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGki";
-    let secretKey = uuidV4();
-
     let user_data = {
         "username": req.body.user.username,
         "location": req.body.user.location,
@@ -61,25 +62,32 @@ exports.create = function(req, res){
     let email = user_data['email'].toString();
     let password = user_data['password'].toString();
 
-    let claims = {
-        username: 'username',
-        password: 'password'
-    };
-
     User.checkIfUsernameDuplicate(username, function (err, result) {
-        console.log({"RESULT": result});
-        if (result.length != 0) {
+        // console.log({"RESULT1": result});
+        if (result.length === null) {
             res.status(400).send("ERROR - Username already exists!");
-        } else {
             User.insertUsers(password, function (err, result) {
                 if(err){
                     res.sendStatus(400);
                 } else {
                     let insertId = result['insertId'];
+                    let claims = {
+                        userid: insertId,
+                        password: password
+                    };
+                    let secretKey = uuidV4();
+
+                    let jwt = nJwt.create(claims,secretKey);
+                    let token = jwt.compact();
                     User.insert(insertId, username, location, email, function (err, result) {
                         if (err) {
-                            res.status(400).send("Malformed request");
+                            res.status(400).send("Malformed request2");
                         } else {
+                            User.insertToken(insertId, token, function (err, result) {
+                                if (err) {
+                                    res.status(400).send("Malformed request1");
+                                }
+                            });
                             res.json(result);
                         }
                     });
@@ -90,8 +98,40 @@ exports.create = function(req, res){
 };
 
 exports.login = function(req, res){
-    let username = req.body.username;
-    let password = req.body.password;
+    let username = req.query.username;
+    let password = req.query.password;
+
+    User.checkIfUsernameDuplicate(username, function (err, result) {
+        if (result.length === null) {
+            res.status(400).send("Invalid username/password supplied");
+        } else {
+            let userId = result[0]['id'];
+            User.requestToken(userId, function (err, result) {
+                if (err) {
+                    res.status(400).send("Invalid username/password supplied");
+                } else {
+                    let reqToken = result[0]['token'];
+                    let decoded = jwt_decode(reqToken);
+
+                    let reqID = decoded['userid'];
+                    let reqPassword = decoded['password'];
+                    let loginJson = {"id": reqID, "token": reqToken};
+                    if (reqID === userId && reqPassword === password) {
+                        User.login(reqID, function (err, result) {
+                            if (err) {
+                                res.status(400).send("Invalid username/password");
+                            }
+                            else {
+                                res.status(200).send(loginJson);
+                            }
+                        })
+                    } else {
+                        res.status(400).send("Invalid username/password");
+                    }
+                }
+            })
+        }
+    });
 };
 
 exports.logout = function(req, res){
