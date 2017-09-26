@@ -7,7 +7,13 @@
 <body>
 <div id="app">
     <h1 v-if="visible"> {{message}}</h1>
+    <ol>
+        <li v-for="item in shopping_list">
+            {{item.name}}
+        </li>
+    </ol>
 </div>
+
 
 <script src="https://unpkg.com/vue"></script>
 <script type="text/javascript" src="app.js"></script>
