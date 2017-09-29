@@ -1,3 +1,4 @@
+//noinspection JSAnnotator
 /**
  * Created by ldu32 on 26/09/17.
  */
@@ -13,7 +14,7 @@ const app = new Vue({
         ]
     },
     methods: {
-        calculateTotal: function () {
+        calculateTotal: function(){
             let totalNumber = 0.0;
             let len = app.data.shopping_list.length-1;
             let i = 0;
