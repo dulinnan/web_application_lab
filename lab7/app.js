@@ -10,7 +10,7 @@ new Vue({
     },
     methods: {
         getUsers: function () {
-            this.$http.get('https://url‐to‐your‐api.com/api/users')
+            this.$http.get('http://localhost:3000/api/users')
                 .then(function (response) {
                     this.users = response.data;
                 }, function (error) {
