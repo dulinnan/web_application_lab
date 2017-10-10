@@ -1,0 +1,22 @@
+{
+  "name": "api-test",
+  "description": "Automated tests for the crowdfunding v2.1 API",
+  "version": "0.0.2",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://eng-git.canterbury.ac.nz/seng365-2017/api-v2-test.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "bunyan": "^1.8.12",
+    "convict": "^4.0.0",
+    "mocha": "^3.5.0",
+    "chai": "^4.1.1",
+    "chai-http": "^3.0.0",
+    "z-schema": "^3.18.3"
+  },
+  "scripts": {
+    "start": "mocha ./test/test.*.js --reporter spec --log-level=warn"
+  }
+}
